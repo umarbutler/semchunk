@@ -1,4 +1,6 @@
 # semchunk
+<a href="https://pypi.org/project/semchunk/" alt="PyPI Version"><img src="https://img.shields.io/pypi/v/semchunk"></a> <a href="https://github.com/umarbutler/semchunk/actions/workflows/ci.yml" alt="Build Status"><img src="https://img.shields.io/github/actions/workflow/status/umarbutler/semchunk/ci.yml?branch=main"></a> <a href="https://app.codecov.io/gh/umarbutler/semchunk" alt="Code Coverage"><img src="https://img.shields.io/codecov/c/github/umarbutler/semchunk"></a> <!-- <a href="https://pypistats.org/packages/semchunk" alt="Downloads"><img src="https://img.shields.io/pypi/dm/semchunk"></a> -->
+
 `semchunk` is a fast and lightweight pure Python library for splitting text into semantically meaningful chunks.
 
 ## Installation 📦
@@ -55,4 +57,4 @@ To ensure that chunks are as semantically meaningful as possible, `semchunk` use
 1. All other characters.
 
 ## Licence 📄
-This library is licensed under the [MIT License](https://github.com/umarbutler/orjsonl/blob/main/LICENSE).
+This library is licensed under the [MIT License](https://github.com/umarbutler/semchunk/blob/main/LICENSE).
