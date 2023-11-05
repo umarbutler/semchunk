@@ -39,7 +39,7 @@ def chunk(
 
 This function returns a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed.
 
-## Methodology 🔬
+## How It Works 🔍
 `semchunk` works by recursively splitting texts until all resulting chunks are equal to or less than a specified chunk size. In particular, it:
 1. Splits text using the most semantically meaningful splitter possible;
 1. Recursively splits the resulting chunks until a set of chunks equal to or less than the specified chunk size is produced;
