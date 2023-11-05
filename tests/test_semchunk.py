@@ -20,7 +20,7 @@ def test_chunk():
     # Test a variety of chunk sizes.
     for chunk_size in range(1,100):
         for chunk in semchunk.chunk(LOREM, chunk_size=chunk_size, token_counter=_token_counter):
-            assert _token_counter(chunk) <= 1
+            assert _token_counter(chunk) <= chunk_size
     
     # Test a chunk size larger than the text.
     semchunk.chunk(LOREM, chunk_size=len(LOREM)**2, token_counter=_token_counter)
