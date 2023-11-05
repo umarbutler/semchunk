@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "semchunk"
+version = "0.1.0"
+authors = [
+  {name="Umar Butler", email="umar@umar.au"},
+]
+description = "A fast and lightweight pure Python library for splitting text into semantically meaningful chunks."
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text="MIT"}
+keywords = [
+    "chunking",
+    "splitting",
+    "text",
+    "split",
+    "splits",
+    "chunks",
+    "chunk",
+    "splitter",
+    "chunker",
+    "nlp",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: General",
+    "Topic :: Utilities",
+    "Typing :: Typed"
+]
+dependencies = [
+]
+
+[project.urls]
+Homepage = "https://github.com/umarbutler/semchunk"
+Documentation = "https://github.com/umarbutler/semchunk/blob/main/README.md"
+Issues = "https://github.com/umarbutler/semchunk/issues"
+Source = "https://github.com/umarbutler/semchunk"
