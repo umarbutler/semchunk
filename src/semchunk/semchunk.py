@@ -48,10 +48,6 @@ def chunk(text: str, chunk_size: int, token_counter: callable, _recursion_depth:
     
     Returns:
         list[str]: A list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed."""
-    
-    # If the text is already within the chunk size, return it as the only chunk.
-    if token_counter(text) <= chunk_size:
-        return [text]
 
     # Split the text using the most semantically meaningful splitter possible.
     splitter, splits = _split_text(text)
