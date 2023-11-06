@@ -29,3 +29,6 @@ def test_chunk() -> None:
             # Test that recombining lowercased chunks stripped of whitespace yields the original text.
             lowercased_no_whitespace = ''.join(sample.lower().split())
             assert ''.join(semchunk.chunk(lowercased_no_whitespace, chunk_size, _token_counter)) == lowercased_no_whitespace
+    
+    # Test a string where tabs must be used as splitters (to increase code coverage).
+    assert semchunk.chunk('ThisIs\tATest.', 4, _token_counter) == ['ThisIs', 'ATest.']
