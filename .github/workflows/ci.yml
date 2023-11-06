@@ -29,6 +29,7 @@ jobs:
         python -m pip install pytest
         python -m pip install pytest-cov
         python -m pip install tiktoken
+        python -m pip install nltk
 
     - name: Install semchunk
       run: |
