@@ -4,6 +4,7 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 ## [0.1.1] - 2023-11-07
 ### Added
 - Added new test samples.
+- Added benchmarks.
 
 ### Changed
 - Improved chunking performance.
