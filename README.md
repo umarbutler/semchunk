@@ -3,6 +3,8 @@
 
 `semchunk` is a fast and lightweight pure Python library for splitting text into semantically meaningful chunks.
 
+Owing to its complex yet highly efficient chunking algorithm, `semchunk` is both more semantically accurate than [`langchain.text_splitter.RecursiveCharacterTextSplitter`](https://python.langchain.com/docs/modules/data_connection/document_transformers/text_splitters/recursive_text_splitter) (see [How It Works 🔍](#how-it-works-🔍)) and is also over 60% faster than [`semantic-text-splitter`](https://pypi.org/project/semantic-text-splitter/) (see the [Benchmarks 📊](#benchmarks-📊)).
+
 ## Installation 📦
 `semchunk` may be installed with `pip`:
 ```bash
@@ -11,12 +13,14 @@ pip install semchunk
 
 ## Usage 👩‍💻
 The code snippet below demonstrates how text can be chunked with `semchunk`:
-
 ```python
 >>> import semchunk
+>>> import tiktoken # `tiktoken` is not required but is used here to quickly count tokens.
 >>> text = 'The quick brown fox jumps over the lazy dog.'
->>> token_counter = lambda text: len(text.split()) # If using `tiktoken`, you may replace this with `token_counter = lambda text: len(tiktoken.encoding_for_model(model).encode(text))`.
->>> semchunk.chunk(text, chunk_size=2, token_counter=token_counter)
+>>> chunk_size = 2 # A low chunk size is used here for demo purposes.
+>>> encoder = tiktoken.encoding_for_model('gpt-4')
+>>> token_counter = lambda text: len(tiktoken.encoding_for_model(model).encode(text)) # `token_counter` may be swapped out for any function capable of counting tokens.
+>>> semchunk.chunk(text, chunk_size=chunk_size, token_counter=token_counter)
 ['The quick', 'brown fox', 'jumps over', 'the lazy', 'dog.']
 ```
 
@@ -55,6 +59,11 @@ To ensure that chunks are as semantically meaningful as possible, `semchunk` use
 1. Sentence interrupters (`:`, `—` and `…`);
 1. Word joiners (`/`, `\`, `–`, `&` and `-`); and
 1. All other characters.
+
+## Benchmarks 📊
+On a desktop with a Ryzen 3600, 64 GB of RAM, Windows 11 and Python 3.12.0, it takes `semchunk` 35.75 seconds to split every sample in [NLTK's Gutenberg Corpus](https://www.nltk.org/howto/corpus.html#plaintext-corpora) into 512-token-long chunks (for context, the Corpus contains 18 texts and 3,001,260 tokens). By comparison, it takes [`semantic-text-splitter`](https://pypi.org/project/semantic-text-splitter/) 1 minute and 50.5 seconds to chunk the same texts into 512-token-long chunks — a difference of 67.65%.
+
+The code used to benchmark `semchunk` and `semantic-text-splitter` is available [here](tests/bench.py).
 
 ## Licence 📄
 This library is licensed under the [MIT License](https://github.com/umarbutler/semchunk/blob/main/LICENSE).
