@@ -93,8 +93,8 @@ def chunk(text: str, chunk_size: int, token_counter: callable, _recursion_depth:
 
         # If the splitter is not whitespace and the split is not the last split, add the splitter to the end of the last chunk if doing so would not cause it to exceed the chunk size otherwise add the splitter as a new chunk.
         if not splitter_is_whitespace and not (i == len(splits) - 1 or all(j in skips for j in range(i+1, len(splits)))):
-            if token_counter(chunks[-1]+splitter) <= chunk_size:
-                chunks[-1] += splitter
+            if token_counter(last_chunk_with_splitter:=chunks[-1]+splitter) <= chunk_size:
+                chunks[-1] = last_chunk_with_splitter
             
             else:
                 chunks.append(splitter)
