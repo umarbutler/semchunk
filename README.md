@@ -3,7 +3,7 @@
 
 `semchunk` is a fast and lightweight pure Python library for splitting text into semantically meaningful chunks.
 
-Owing to its complex yet highly efficient chunking algorithm, `semchunk` is both more semantically accurate than [`langchain.text_splitter.RecursiveCharacterTextSplitter`](https://python.langchain.com/docs/modules/data_connection/document_transformers/text_splitters/recursive_text_splitter) (see [How It Works 🔍](#how-it-works-)) and is also over 60% faster than [`semantic-text-splitter`](https://pypi.org/project/semantic-text-splitter/) (see the [Benchmarks 📊](#benchmarks-)).
+Owing to its complex yet highly efficient chunking algorithm, `semchunk` is both more semantically accurate than [`langchain.text_splitter.RecursiveCharacterTextSplitter`](https://python.langchain.com/docs/modules/data_connection/document_transformers/text_splitters/recursive_text_splitter) (see [How It Works 🔍](https://github.com/umarbutler/semchunk#how-it-works-)) and is also over 60% faster than [`semantic-text-splitter`](https://pypi.org/project/semantic-text-splitter/) (see the [Benchmarks 📊](https://github.com/umarbutler/semchunk#benchmarks-)).
 
 ## Installation 📦
 `semchunk` may be installed with `pip`:
@@ -63,7 +63,7 @@ To ensure that chunks are as semantically meaningful as possible, `semchunk` use
 ## Benchmarks 📊
 On a desktop with a Ryzen 3600, 64 GB of RAM, Windows 11 and Python 3.12.0, it takes `semchunk` 35.75 seconds to split every sample in [NLTK's Gutenberg Corpus](https://www.nltk.org/howto/corpus.html#plaintext-corpora) into 512-token-long chunks (for context, the Corpus contains 18 texts and 3,001,260 tokens). By comparison, it takes [`semantic-text-splitter`](https://pypi.org/project/semantic-text-splitter/) 1 minute and 50.5 seconds to chunk the same texts into 512-token-long chunks — a difference of 67.65%.
 
-The code used to benchmark `semchunk` and `semantic-text-splitter` is available [here](tests/bench.py).
+The code used to benchmark `semchunk` and `semantic-text-splitter` is available [here](https://github.com/umarbutler/semchunk/blob/main/tests/bench.py).
 
 ## Licence 📄
-This library is licensed under the [MIT License](https://github.com/umarbutler/semchunk/blob/main/LICENSE).
+This library is licensed under the [MIT License](https://github.com/umarbutler/semchunk/blob/main/LICENCE).
