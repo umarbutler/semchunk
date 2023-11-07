@@ -14,7 +14,7 @@ def bench_semantic_text_splitter(text: str) -> None:
 
 libraries = {
     'semchunk': bench_semchunk,
-    #'semantic_text_splitter': bench_semantic_text_splitter,
+    'semantic_text_splitter': bench_semantic_text_splitter,
 }
 
 def bench() -> dict[str, float]:
