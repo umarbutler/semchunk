@@ -30,6 +30,7 @@ def chunk(
     text: str,
     chunk_size: int,
     token_counter: callable,
+    memoize: bool=True
 ) -> list[str]
 ```
 
@@ -40,6 +41,8 @@ def chunk(
 `chunk_size` is the maximum number of tokens a chunk may contain.
 
 `token_counter` is a callable that takes a string and returns the number of tokens in it.
+
+`memoize` flags whether to memoise the token counter. It defaults to `True`.
 
 This function returns a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed.
 

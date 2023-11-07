@@ -1,6 +1,10 @@
 import re
+from functools import cache
 
-NON_WHITESPACE_SEMANTIC_SPLITTERS = (
+_memoised_token_counters = {}
+"""A map of token counters to their memoised versions."""
+
+_NON_WHITESPACE_SEMANTIC_SPLITTERS = (
     '.', '?', '!', '*', # Sentence terminators.
     ';', ',', '(', ')', '[', ']', "“", "”", '‘', '’', "'", '"', '`', # Clause separators.
     ':', '—', '…', # Sentence interrupters.
@@ -29,7 +33,7 @@ def _split_text(text: str) -> tuple[str, bool, list[str]]:
     
     else:
         # Identify the most desirable semantically meaningful non-whitespace splitter present in the text.
-        for splitter in NON_WHITESPACE_SEMANTIC_SPLITTERS:
+        for splitter in _NON_WHITESPACE_SEMANTIC_SPLITTERS:
             if splitter in text:
                 splitter_is_whitespace = False
                 break
@@ -41,16 +45,21 @@ def _split_text(text: str) -> tuple[str, bool, list[str]]:
     # Return the splitter and the split text.
     return splitter, splitter_is_whitespace, text.split(splitter)
 
-def chunk(text: str, chunk_size: int, token_counter: callable, _recursion_depth: int = 0) -> list[str]:
+def chunk(text: str, chunk_size: int, token_counter: callable, memoize: bool=True, _recursion_depth: int = 0) -> list[str]:
     """Split text into semantically meaningful chunks of a specified size as determined by the provided token counter.
 
    Args:
         text (str): The text to be chunked.
         chunk_size (int): The maximum number of tokens a chunk may contain.
         token_counter (callable): A callable that takes a string and returns the number of tokens in it.
+        memoize (bool, optional): Whether to memoise the token counter. Defaults to True.
     
     Returns:
         list[str]: A list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed."""
+    
+    # If this is not a recursive call and memoization is enabled, overwrite the `token_counter` with a memoised version of itself.
+    if not _recursion_depth and memoize:
+        token_counter = _memoised_token_counters.setdefault(token_counter, cache(token_counter))
 
     # Split the text using the most semantically meaningful splitter possible.
     splitter, splitter_is_whitespace, splits = _split_text(text)
