@@ -11,7 +11,7 @@ _NON_WHITESPACE_SEMANTIC_SPLITTERS = (
     '/', '\\', '–', '&', '-', # Word joiners.
 )
 """A tuple of semantically meaningful non-whitespace splitters that may be used to chunk texts, ordered from most desirable to least desirable."""
-    
+
 def _split_text(text: str) -> tuple[str, bool, list[str]]:
     """Split text using the most semantically meaningful splitter possible."""
     
@@ -45,6 +45,7 @@ def _split_text(text: str) -> tuple[str, bool, list[str]]:
     # Return the splitter and the split text.
     return splitter, splitter_is_whitespace, text.split(splitter)
 
+@cache
 def chunk(text: str, chunk_size: int, token_counter: callable, memoize: bool=True, _recursion_depth: int = 0) -> list[str]:
     """Split text into semantically meaningful chunks of a specified size as determined by the provided token counter.
 

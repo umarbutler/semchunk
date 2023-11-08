@@ -1,6 +1,10 @@
 ## Changelog 🔄
 All notable changes to `semchunk` will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Memoized `chunk()`.
+
 ## [0.2.0] - 2023-11-07
 ### Added
 - Added the `memoize` argument to `chunk()`, which memoizes token counters by default to significantly improve performance.
