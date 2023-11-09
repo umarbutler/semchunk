@@ -5,6 +5,9 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 ### Added
 - Memoized `chunk()`.
 
+### Fixed
+- Fixed typos in README.
+
 ## [0.2.0] - 2023-11-07
 ### Added
 - Added the `memoize` argument to `chunk()`, which memoizes token counters by default to significantly improve performance.

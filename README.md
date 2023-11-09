@@ -19,7 +19,7 @@ The code snippet below demonstrates how text can be chunked with `semchunk`:
 >>> text = 'The quick brown fox jumps over the lazy dog.'
 >>> chunk_size = 2 # A low chunk size is used here for demo purposes.
 >>> encoder = tiktoken.encoding_for_model('gpt-4')
->>> token_counter = lambda text: len(tiktoken.encoding_for_model(model).encode(text)) # `token_counter` may be swapped out for any function capable of counting tokens.
+>>> token_counter = lambda text: len(encoder.encode(text)) # `token_counter` may be swapped out for any function capable of counting tokens.
 >>> semchunk.chunk(text, chunk_size=chunk_size, token_counter=token_counter)
 ['The quick', 'brown fox', 'jumps over', 'the lazy', 'dog.']
 ```
