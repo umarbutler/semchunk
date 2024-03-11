@@ -1,5 +1,5 @@
 import re
-from functools import cache
+from functools import cache, wraps
 
 _memoised_token_counters = {}
 """A map of token counters to their memoised versions."""
@@ -45,7 +45,6 @@ def _split_text(text: str) -> tuple[str, bool, list[str]]:
     # Return the splitter and the split text.
     return splitter, splitter_is_whitespace, text.split(splitter)
 
-@cache
 def chunk(text: str, chunk_size: int, token_counter: callable, memoize: bool=True, _recursion_depth: int = 0) -> list[str]:
     """Split text into semantically meaningful chunks of a specified size as determined by the provided token counter.
 
@@ -114,3 +113,5 @@ def chunk(text: str, chunk_size: int, token_counter: callable, memoize: bool=Tru
         chunks = list(filter(None, chunks))
     
     return chunks
+
+chunk = wraps(chunk)(cache(chunk))
