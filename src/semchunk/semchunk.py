@@ -48,7 +48,7 @@ def _split_text(text: str) -> tuple[str, bool, list[str]]:
 def chunk(text: str, chunk_size: int, token_counter: callable, memoize: bool=True, _recursion_depth: int = 0) -> list[str]:
     """Split text into semantically meaningful chunks of a specified size as determined by the provided token counter.
 
-   Args:
+    Args:
         text (str): The text to be chunked.
         chunk_size (int): The maximum number of tokens a chunk may contain.
         token_counter (callable): A callable that takes a string and returns the number of tokens in it.
