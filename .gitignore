@@ -1,1 +1,29 @@
+<<<<<<< HEAD
 **/__pycache__/
+=======
+# Exclude everything.
+*
+
+# Then, include just the folders and files we want.
+!README.md
+!LICENCE
+!CHANGELOG.md
+!pyproject.toml
+!src/
+!src/**/*
+!tests/
+!tests/**/*
+!.github/
+!.github/**/*
+!.gitignore
+
+# Finally, exclude anything in the above inclusions that we don't want.
+#   Exclude common Python files and folders.
+*.pyc
+*.pyo
+*.ipynb
+__pycache__/
+.pytest_cache/
+tests/profiler.py
+tests/test_bench.py
+>>>>>>> main
