@@ -1,10 +1,9 @@
 ## Changelog 🔄
 All notable changes to `semchunk` will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.4] - 2024-04-03
+## [Unreleased] - 2024-XX-XX
 ### Changed
-- Improved chunking performance
-- Added git ignore file
+- Improved chunking performance with larger chunk sizes by switching from linear to binary search for the identification of optimal chunk boundaries.
 
 ## [0.2.3] - 2024-03-11
 ### Fixed
