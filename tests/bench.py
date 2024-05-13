@@ -1,16 +1,16 @@
 import semchunk
-import semantic_text_splitter
+from semantic_text_splitter import TextSplitter
 import test_semchunk
 import time
 
 chunk_size = 512
-semantic_text_splitter_chunker = semantic_text_splitter.TiktokenTextSplitter('gpt-4')
+semantic_text_splitter_chunker = TextSplitter.from_tiktoken_model('gpt-4', chunk_size)
 
 def bench_semchunk(text: str) -> None:
     semchunk.chunk(text, chunk_size=chunk_size, token_counter=test_semchunk._token_counter)
 
 def bench_semantic_text_splitter(text: str) -> None:
-    semantic_text_splitter_chunker.chunks(text, chunk_size)
+    semantic_text_splitter_chunker.chunks(text)
 
 libraries = {
     'semchunk': bench_semchunk,

@@ -1,9 +1,9 @@
 ## Changelog 🔄
 All notable changes to `semchunk` will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-XX-XX
+## [0.2.4] - 2024-05-13
 ### Changed
-- Improved chunking performance with larger chunk sizes by switching from linear to binary search for the identification of optimal chunk boundaries.
+- Improved chunking performance with larger chunk sizes by switching from linear to binary search for the identification of optimal chunk boundaries, courtesy of [@R0bk](https://github.com/R0bk) ([#3](https://github.com/umarbutler/semchunk/pull/3)) ([1e3ddb9](https://github.com/umarbutler/semchunk/pull/3/commits/1e3ddb91698f072da1d8a7d809a66467e1d31ff8)).
 
 ## [0.2.3] - 2024-03-11
 ### Fixed
@@ -44,6 +44,7 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 ### Added
 - Added the `chunk()` function, which splits text into semantically meaningful chunks of a specified size as determined by a provided token counter.
 
+[0.2.4]: https://github.com/umarbutler/semchunk/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/umarbutler/semchunk/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/umarbutler/semchunk/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/umarbutler/semchunk/compare/v0.2.0...v0.2.1
