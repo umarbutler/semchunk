@@ -57,8 +57,8 @@ def merge_splits(splits: list[str], chunk_size: int, splitter: str, token_counte
     average = 0.2
     low = 0
     high = len(splits) + 1
-    cumulative_lengths = tuple(accumulate(map(len, splits), initial=0))
-    cumulative_lengths += (cumulative_lengths[-1],) 
+    cumulative_lengths = list(accumulate([len(split) for split in splits], initial=0))
+    cumulative_lengths.append(cumulative_lengths[-1],) 
 
     while low < high:
         i = bisect_left(cumulative_lengths[low : high + 1], chunk_size * average)
