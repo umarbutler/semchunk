@@ -1,6 +1,7 @@
 import re
 
 from bisect import bisect_left
+from typing import Callable
 from functools import cache, wraps
 from itertools import accumulate
 
@@ -50,31 +51,32 @@ def _split_text(text: str) -> tuple[str, bool, list[str]]:
     return splitter, splitter_is_whitespace, text.split(splitter)
 
 
-def find_split(splits: list[str], max_size: int, splitter: str, counter: callable) -> tuple[int, str]:
-    """Binary search for the optimal split point where the accumulated_token_count < max_size."""
+def merge_splits(splits: list[str], chunk_size: int, splitter: str, token_counter: Callable) -> tuple[int, str]:
+    """Merge splits until a chunk size is reached, returning the index of the last split included in the merged chunk along with the merged chunk itself."""
     
-    # Start avg low for fast calc of first real avg
-    avg, low, high = 0.2, 0, len(splits) + 1
-    sums = list(accumulate(map(len, splits), initial=0))
-    sums.append(sums[-1])
+    average = 0.2
+    low = 0
+    high = len(splits) + 1
+    cumulative_lengths = tuple(accumulate(map(len, splits), initial=0))
+    cumulative_lengths += (cumulative_lengths[-1],) 
 
     while low < high:
-        idx = bisect_left(sums[low:high + 1], max_size * avg)
-        mid = min(idx + low, high - 1)
+        i = bisect_left(cumulative_lengths[low : high + 1], chunk_size * average)
+        midpoint = min(i + low, high - 1)
 
-        tokens = counter(splitter.join(splits[:mid]))
+        tokens = token_counter(splitter.join(splits[:midpoint]))
 
-        avg = sums[mid]/tokens if sums[mid] else avg
+        average = cumulative_lengths[midpoint] / tokens if cumulative_lengths[midpoint] else average
 
-        if tokens > max_size:
-            high = mid
+        if tokens > chunk_size:
+            high = midpoint
         else:
-            low = mid + 1
+            low = midpoint + 1
 
-    return low-1, splitter.join(splits[:low-1])
+    return low - 1, splitter.join(splits[:low - 1])
 
 
-def chunk(text: str, chunk_size: int, token_counter: callable, memoize: bool=True, _recursion_depth: int = 0) -> list[str]:
+def chunk(text: str, chunk_size: int, token_counter: Callable, memoize: bool = True, _recursion_depth: int = 0) -> list[str]:
     """Split text into semantically meaningful chunks of a specified size as determined by the provided token counter.
 
    Args:
@@ -105,22 +107,22 @@ def chunk(text: str, chunk_size: int, token_counter: callable, memoize: bool=Tru
         
         # If the split is over the chunk size, recursively chunk it.
         if token_counter(split) > chunk_size:
-            chunks.extend(chunk(split, chunk_size, token_counter, memoize, _recursion_depth+1))
+            chunks.extend(chunk(split, chunk_size, token_counter = token_counter, memoize = memoize, recursion_depth = _recursion_depth + 1))
 
-        # If the split is equal to or under the chunk size, merge it with all subsequent splits until the chunk size is reached.
+        # If the split is equal to or under the chunk size, add it and any subsequent splits to a new chunk until the chunk size is reached.
         else:
-           # Use n-ary search to find the optimal split point.
-            optimal, new_chunk = find_split(splits[i:], chunk_size, splitter, token_counter)
-                        
-            # Update the skips set based on the splits included in the new chunk.
-            skips.update(range(i+1, i + optimal))
+            # Merge the split with subsequent splits until the chunk size is reached.
+            final_split_in_chunk_i, new_chunk = merge_splits(splits[i:], chunk_size, splitter, token_counter)
+            
+            # Mark any splits included in the new chunk for exclusion from future chunks.
+            skips.update(range(i + 1, i + final_split_in_chunk_i))
             
             # Add the chunk.
             chunks.append(new_chunk)
 
         # If the splitter is not whitespace and the split is not the last split, add the splitter to the end of the last chunk if doing so would not cause it to exceed the chunk size otherwise add the splitter as a new chunk.
-        if not splitter_is_whitespace and not (i == len(splits) - 1 or all(j in skips for j in range(i+1, len(splits)))):
-            if token_counter(last_chunk_with_splitter:=chunks[-1]+splitter) <= chunk_size:
+        if not splitter_is_whitespace and not (i == len(splits) - 1 or all(j in skips for j in range(i + 1, len(splits)))):
+            if token_counter(last_chunk_with_splitter := chunks[-1] + splitter) <= chunk_size:
                 chunks[-1] = last_chunk_with_splitter
             else:
                 chunks.append(splitter)
