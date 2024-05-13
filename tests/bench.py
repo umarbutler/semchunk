@@ -6,7 +6,8 @@ from semantic_text_splitter import TextSplitter
 
 import semchunk
 
-chunk_sizes = [8,16,32,64,128,256,512,1024]
+chunk_sizes = [8,16,32,64,128,256,512,1024,2048,4096,8192]
+
 semantic_text_splitter_chunker = TextSplitter.from_tiktoken_model('gpt-4')
 
 encoder = tiktoken.encoding_for_model('gpt-4')
@@ -31,7 +32,7 @@ def bench_semantic_text_splitter(text: str, chunk_size: int) -> None:
 libraries = {
     'semchunk': bench_semchunkv1,
     'semchunkv2': bench_semchunkv2,
-    'semantic_text_splitter': bench_semantic_text_splitter,
+    # 'semantic_text_splitter': bench_semantic_text_splitter,
 }
 
 def bench() -> dict[str, float]:
@@ -41,10 +42,13 @@ def bench() -> dict[str, float]:
         semchunk.semchunk._memoised_token_counters = {}
         for fileid in test_semchunk.gutenberg.fileids():
             sample = test_semchunk.gutenberg.raw(fileid)
+            results = []
             for library, function in libraries.items():
                 start = time.time()
-                function(sample, chunk_size)
+                results.append(function(sample, chunk_size))
                 benchmarks[library][i] += time.time() - start
+                if len(results) > 1:
+                    assert results[-1] == results[-2]
         
     return benchmarks
 
