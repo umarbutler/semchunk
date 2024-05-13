@@ -1,7 +1,9 @@
 import re
+
 from bisect import bisect_left
 from functools import cache, wraps
 from itertools import accumulate
+
 
 _memoised_token_counters = {}
 """A map of token counters to their memoised versions."""
@@ -46,75 +48,6 @@ def _split_text(text: str) -> tuple[str, bool, list[str]]:
     
     # Return the splitter and the split text.
     return splitter, splitter_is_whitespace, text.split(splitter)
-
-def chunk_legacy(text: str, chunk_size: int, token_counter: callable, memoize: bool=True, _recursion_depth: int = 0) -> list[str]:
-    """Split text into semantically meaningful chunks of a specified size as determined by the provided token counter.
-
-   Args:
-        text (str): The text to be chunked.
-        chunk_size (int): The maximum number of tokens a chunk may contain.
-        token_counter (callable): A callable that takes a string and returns the number of tokens in it.
-        memoize (bool, optional): Whether to memoise the token counter. Defaults to True.
-    
-    Returns:
-        list[str]: A list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed."""
-    
-    # If this is not a recursive call and memoization is enabled, overwrite the `token_counter` with a memoised version of itself.
-    if not _recursion_depth and memoize:
-        token_counter = _memoised_token_counters.setdefault(token_counter, cache(token_counter))
-
-    # Split the text using the most semantically meaningful splitter possible.
-    splitter, splitter_is_whitespace, splits = _split_text(text)
-    
-    chunks = []
-    skips = set()
-    """A list of indices of splits to skip because they have already been added to a chunk."""
-    
-    # Iterate through the splits.
-    for i, split in enumerate(splits):
-        # Skip the split if it has already been added to a chunk.
-        if i in skips:
-            continue
-        
-        # If the split is over the chunk size, recursively chunk it.
-        if token_counter(split) > chunk_size:
-            chunks.extend(chunk_legacy(split, chunk_size, token_counter=token_counter, memoize=memoize, _recursion_depth=_recursion_depth+1))
-
-        # If the split is equal to or under the chunk size, merge it with all subsequent splits until the chunk size is reached.
-        else:
-            # Initalise the new chunk.
-            new_chunk = split
-            
-            # Iterate through each subsequent split until the chunk size is reached.
-            for j, next_split in enumerate(splits[i+1:], start=i+1):
-                # Check whether the next split can be added to the chunk without exceeding the chunk size.
-                if token_counter(updated_chunk:=new_chunk+splitter+next_split) <= chunk_size:
-                    # Add the next split to the new chunk.
-                    new_chunk = updated_chunk
-                    
-                    # Add the index of the next split to the list of indices to skip.
-                    skips.add(j)
-                
-                # If the next split cannot be added to the chunk without exceeding the chunk size, break.
-                else:
-                    break
-            
-            # Add the chunk.
-            chunks.append(new_chunk)
-
-        # If the splitter is not whitespace and the split is not the last split, add the splitter to the end of the last chunk if doing so would not cause it to exceed the chunk size otherwise add the splitter as a new chunk.
-        if not splitter_is_whitespace and not (i == len(splits) - 1 or all(j in skips for j in range(i+1, len(splits)))):
-            if token_counter(last_chunk_with_splitter:=chunks[-1]+splitter) <= chunk_size:
-                chunks[-1] = last_chunk_with_splitter
-            
-            else:
-                chunks.append(splitter)
-    
-    # If this is not a recursive call, remove any empty chunks.
-    if not _recursion_depth:
-        chunks = list(filter(None, chunks))
-    
-    return chunks
 
 
 def find_split(splits: list[str], max_size: int, splitter: str, counter: callable) -> tuple[int, str]:
@@ -197,5 +130,6 @@ def chunk(text: str, chunk_size: int, token_counter: callable, memoize: bool=Tru
         chunks = list(filter(None, chunks))
     
     return chunks
+
 
 chunk = wraps(chunk)(cache(chunk))
