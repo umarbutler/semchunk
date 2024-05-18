@@ -178,7 +178,7 @@ def chunkerify(
                 tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer_or_token_counter)
             
             except Exception:
-                raise ValueError(f'"{tokenizer_or_token_counter}" was provided to `semchunk.make_chunker` as the name of a tokenizer but neither `tiktoken` nor `transformers` have a tokenizer by that name. Perhaps they are not installed or maybe there is a typo in that name?')
+                raise ValueError(f'"{tokenizer_or_token_counter}" was provided to `semchunk.chunkerify` as the name of a tokenizer but neither `tiktoken` nor `transformers` have a tokenizer by that name. Perhaps they are not installed or maybe there is a typo in that name?')
         
         tokenizer_or_token_counter = tokenizer
     
@@ -206,7 +206,7 @@ def chunkerify(
                     chunk_size -= len(tokenizer_or_token_counter.encode(''))
         
         else:
-            raise ValueError("Your desired chunk size was not passed to `semchunk.make_chunker` and the provided tokenizer either lacks an attribute named 'model_max_length' or that attribute is not an integer. Either specify a chunk size or provide a tokenizer that has a 'model_max_length' attribute that is an integer.")
+            raise ValueError("Your desired chunk size was not passed to `semchunk.chunkerify` and the provided tokenizer either lacks an attribute named 'model_max_length' or that attribute is not an integer. Either specify a chunk size or provide a tokenizer that has a 'model_max_length' attribute that is an integer.")
     
     # If we have been given a tokenizer, construct a token counter from it.
     if hasattr(tokenizer_or_token_counter, 'encode'):
