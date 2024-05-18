@@ -64,12 +64,15 @@ def test_chunk() -> None:
         
     # Test using a `tiktoken` tokenizer by name.
     chunker = semchunk.chunkerify('gpt-4', 1)
+    chunker('ThisIs\tATest.')
     
     # Test using a `transformers` tokenizer by name.
     chunker = semchunk.chunkerify('umarbutler/emubert', 1)
+    chunker('ThisIs\tATest.')
     
     # Test using a `tiktoken` encoding by name.
     chunker = semchunk.chunkerify('cl100k_base', 1)
+    chunker('ThisIs\tATest.')
 
     # Test causing a `ValueError` by passing a tokenizer by name that should not exist.
     try:
