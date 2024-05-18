@@ -1,27 +1,41 @@
-import semchunk
-from semantic_text_splitter import TextSplitter
-import test_semchunk
 import time
 
-chunk_size = 512
-semantic_text_splitter_chunker = TextSplitter.from_tiktoken_model('gpt-4', chunk_size)
+import semchunk
 
-def bench_semchunk(text: str) -> None:
-    semchunk.chunk(text, chunk_size=chunk_size, token_counter=test_semchunk._token_counter)
+import nltk
+import tiktoken
 
-def bench_semantic_text_splitter(text: str) -> None:
-    semantic_text_splitter_chunker.chunks(text)
+from semantic_text_splitter import TextSplitter
 
-libraries = {
-    'semchunk': bench_semchunk,
-    'semantic_text_splitter': bench_semantic_text_splitter,
-}
+# BEGIN CONFIG #
+CHUNK_SIZE = 512
+# END CONFIG #
 
 def bench() -> dict[str, float]:
+    # Initialise the chunkers.
+    semchunk_chunker = semchunk.chunkerify(tiktoken.encoding_for_model('gpt-4'), CHUNK_SIZE)
+    semantic_text_splitter_chunker = TextSplitter.from_tiktoken_model('gpt-4', CHUNK_SIZE)
+
+    def bench_semchunk(text: str) -> None:
+        semchunk_chunker(text)
+
+    def bench_semantic_text_splitter(text: str) -> None:
+        semantic_text_splitter_chunker.chunks(text)
+
+    libraries = {
+        'semchunk': bench_semchunk,
+        #'semantic_text_splitter': bench_semantic_text_splitter,
+    }
+
+    # Download the Gutenberg corpus.
+    nltk.download('gutenberg')
+    gutenberg = nltk.corpus.gutenberg
+    
+    # Benchmark the libraries.
     benchmarks = dict.fromkeys(libraries.keys(), 0)
     
-    for fileid in test_semchunk.gutenberg.fileids():
-        sample = test_semchunk.gutenberg.raw(fileid)
+    for fileid in gutenberg.fileids():
+        sample = gutenberg.raw(fileid)
         for library, function in libraries.items():
             start = time.time()
             function(sample)

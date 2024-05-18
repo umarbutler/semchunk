@@ -1,10 +1,16 @@
 import re
+import inspect
 
 from bisect import bisect_left
-from typing import Callable
+from typing import Callable, Sequence, TYPE_CHECKING
 from functools import cache, wraps
 from itertools import accumulate
+from contextlib import suppress
 
+if TYPE_CHECKING:
+    import tiktoken
+    import tokenizers
+    import transformers
 
 _memoised_token_counters = {}
 """A map of token counters to their memoised versions."""
@@ -50,7 +56,6 @@ def _split_text(text: str) -> tuple[str, bool, list[str]]:
     # Return the splitter and the split text.
     return splitter, splitter_is_whitespace, text.split(splitter)
 
-
 def merge_splits(splits: list[str], chunk_size: int, splitter: str, token_counter: Callable) -> tuple[int, str]:
     """Merge splits until a chunk size is reached, returning the index of the last split included in the merged chunk along with the merged chunk itself."""
     
@@ -75,15 +80,14 @@ def merge_splits(splits: list[str], chunk_size: int, splitter: str, token_counte
 
     return low - 1, splitter.join(splits[:low - 1])
 
-
-def chunk(text: str, chunk_size: int, token_counter: Callable, memoize: bool = True, _recursion_depth: int = 0) -> list[str]:
-    """Split text into semantically meaningful chunks of a specified size as determined by the provided token counter.
+def chunk(text: str, chunk_size: int, token_counter: Callable[[str], int], memoize: bool = True, _recursion_depth: int = 0) -> list[str]:
+    """Split a text into semantically meaningful chunks of a specified size as determined by the provided token counter.
 
     Args:
         text (str): The text to be chunked.
         chunk_size (int): The maximum number of tokens a chunk may contain.
-        token_counter (callable): A callable that takes a string and returns the number of tokens in it.
-        memoize (bool, optional): Whether to memoise the token counter. Defaults to True.
+        token_counter (Callable[[str], int]): A callable that takes a string and returns the number of tokens in it.
+        memoize (bool, optional): Whether to memoise the token counter. Defaults to `True`.
     
     Returns:
         list[str]: A list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed."""
@@ -133,5 +137,121 @@ def chunk(text: str, chunk_size: int, token_counter: Callable, memoize: bool = T
     
     return chunks
 
-
+# Memoise the `chunk` function, preserving its signature and docstring.
 chunk = wraps(chunk)(cache(chunk))
+
+def chunkerify(
+    tokenizer_or_token_counter: str | tiktoken.Encoding | transformers.PreTrainedTokenizer \
+                                | tokenizers.Tokenizer | Callable[[str], int],
+    chunk_size: int = None,
+    max_token_chars: int = None,
+    memoize: bool = True,
+): # NOTE The output of `chunkerify()` is not type hinted because it causes `vscode` to overwrite the signature and docstring of the outputted chunker with the type hint.
+    """Construct a chunker that splits one or more texts into semantically meaningful chunks of a specified size as determined by the provided tokenizer or token counter.
+    
+    Args:
+        tokenizer_or_token_counter (str | tiktoken.Encoding | transformers.PreTrainedTokenizer | tokenizers.Tokenizer | Callable[[str], int]): Either: the name of a `tiktoken` or `transformers` tokenizer (with priority given to the former); a tokenizer that possesses an `encode` attribute (eg, a `tiktoken`, `transformers` or `tokenizers` tokenizer); or a token counter that returns the number of tokens in a input.
+        chunk_size (int, optional): The maximum number of tokens a chunk may contain. Defaults to `None` in which case it will be set to the same value as the tokenizer's `model_max_length` attribute (deducted by the number of tokens returned by attempting to tokenize an empty string) if possible otherwise a `ValueError` will be raised.
+        max_token_chars (int, optional): The maximum numbers of characters a token may contain. Used to significantly speed up the token counting of long inputs. Defaults to `None` in which case it will either not be used or will, if possible, be set to the numbers of characters in the longest token in the tokenizer's vocabulary as determined by the `token_byte_values` or `get_vocab` methods.
+        memoize (bool, optional): Whether to memoise the token counter. Defaults to `True`.
+    
+    Returns:
+        Callable[[str | Sequence[str]], list[str] | list[list[str]]]: A function that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts."""
+    
+    # If the provided tokenizer is a string, try to load it with either `tiktoken` or `transformers` or raise an error if neither is available.
+    if isinstance(tokenizer_or_token_counter, str):
+        try:
+            import tiktoken
+            
+            try:
+                tokenizer = tiktoken.encoding_for_model(tokenizer_or_token_counter)
+            
+            except Exception:
+                tokenizer = tiktoken.get_encoding(tokenizer_or_token_counter)
+        
+        except Exception:
+            try:
+                import transformers
+                
+                tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer_or_token_counter)
+            
+            except Exception:
+                raise ValueError(f'"{tokenizer_or_token_counter}" was provided to `semchunk.make_chunker` as the name of a tokenizer but neither `tiktoken` nor `transformers` have a tokenizer by that name. Perhaps they are not installed or maybe there is a typo in that name?')
+        
+        tokenizer_or_token_counter = tokenizer
+    
+    # If the number of characters in the longest token has not been provided, determine it if possible.
+    if max_token_chars is None:
+        for potential_vocabulary_getter_function in (
+            'token_byte_values', # Employed by `tiktoken`.
+            'get_vocab', # Employed by `tokenizers`.
+        ):
+            if hasattr(tokenizer_or_token_counter, potential_vocabulary_getter_function) and callable(getattr(tokenizer_or_token_counter, potential_vocabulary_getter_function)):
+                vocab = getattr(tokenizer_or_token_counter, potential_vocabulary_getter_function)()
+                
+                if hasattr(vocab, '__iter__') and vocab and all(hasattr(token, '__len__') for token in vocab):
+                    max_token_chars = max(len(token) for token in vocab)
+                    break
+    
+    # If a chunk size has not been specified, set it to the maximum number of tokens the tokenizer supports if possible otherwise raise an error.
+    if chunk_size is None:
+        if hasattr(tokenizer_or_token_counter, 'model_max_length') and isinstance(tokenizer_or_token_counter.model_max_length, int):
+            chunk_size = tokenizer_or_token_counter.model_max_length
+            
+            # Attempt to reduce the chunk size by the number of special characters typically added by the tokenizer.
+            if hasattr(tokenizer_or_token_counter, 'encode'):
+                with suppress(Exception):
+                    chunk_size -= len(tokenizer_or_token_counter.encode(''))
+        
+        else:
+            raise ValueError("Your desired chunk size was not passed to `semchunk.make_chunker` and the provided tokenizer either lacks an attribute named 'model_max_length' or that attribute is not an integer. Either specify a chunk size or provide a tokenizer that has a 'model_max_length' attribute that is an integer.")
+    
+    # If we have been given a tokenizer, construct a token counter from it.
+    if hasattr(tokenizer_or_token_counter, 'encode'):
+        # Determine whether the tokenizer accepts the argument `add_special_tokens` and, if so, ensure that it is always disabled.
+        if 'add_special_tokens' in inspect.signature(tokenizer_or_token_counter.encode).parameters:
+            def token_counter(text: str) -> int:
+                return len(tokenizer_or_token_counter.encode(text, add_special_tokens = False))
+        
+        else:
+            def token_counter(text: str) -> int:
+                return len(tokenizer_or_token_counter.encode(text))
+    
+    else:
+        token_counter = tokenizer_or_token_counter
+    
+    # If we know the number of characters in the longest token, construct a new token counter that uses that to avoid having to tokenize very long texts.
+    if max_token_chars is not None:
+        max_token_chars = max_token_chars - 1
+        original_token_counter = token_counter
+        
+        def faster_token_counter(text: str) -> int:
+            heuristic = chunk_size * 6
+            
+            if len(text) > heuristic and original_token_counter(text[:heuristic + max_token_chars]) > chunk_size:
+                return chunk_size + 1
+            
+            return original_token_counter(text)
+
+        token_counter = faster_token_counter
+    
+    # Memoize the token counter if necessary.
+    if memoize:
+        token_counter = _memoised_token_counters.setdefault(token_counter, cache(token_counter))
+    
+    # Construct and return the chunker.
+    def chunker(text_or_texts: str | Sequence[str]) -> list[str] | list[list[str]]:
+        """Split text or texts into semantically meaningful chunks of a specified size as determined by the provided tokenizer or token counter.
+        
+        Args:
+            text_or_texts (str | Sequence[str]): The text or texts to be chunked.
+        
+        Returns:
+            list[str] | list[list[str]]: If a single text has been provided, a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts."""
+                
+        if isinstance(text_or_texts, str):
+            return chunk(text_or_texts, chunk_size, token_counter, memoize = False)
+        
+        return [chunk(text, chunk_size, token_counter, memoize = False) for text in text_or_texts]
+    
+    return chunker
