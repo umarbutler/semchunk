@@ -23,7 +23,7 @@ def test_chunk() -> None:
         return len(tiktoken_tokenizer.encode(text))
         
     # Test chunking with a variety of chunk sizes.
-    for chunk_size in {1, 2, 512}:
+    for chunk_size in {1, 512, 1024}:
         # Test chunking with a variety of texts.
         for fileid in {'austen-emma.txt', 'carroll-alice.txt', 'shakespeare-macbeth.txt'}:
             sample = gutenberg.raw(fileid)
