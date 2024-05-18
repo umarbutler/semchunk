@@ -14,8 +14,8 @@ if TYPE_CHECKING:
     import tokenizers
     import transformers
 
-_memoised_token_counters = {}
-"""A map of token counters to their memoised versions."""
+_memoized_token_counters = {}
+"""A map of token counters to their memoized versions."""
 
 _NON_WHITESPACE_SEMANTIC_SPLITTERS = (
     '.', '?', '!', '*', # Sentence terminators.
@@ -89,14 +89,14 @@ def chunk(text: str, chunk_size: int, token_counter: Callable[[str], int], memoi
         text (str): The text to be chunked.
         chunk_size (int): The maximum number of tokens a chunk may contain.
         token_counter (Callable[[str], int]): A callable that takes a string and returns the number of tokens in it.
-        memoize (bool, optional): Whether to memoise the token counter. Defaults to `True`.
+        memoize (bool, optional): Whether to memoize the token counter. Defaults to `True`.
     
     Returns:
         list[str]: A list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed."""
     
-    # If this is not a recursive call and memoization is enabled, overwrite the `token_counter` with a memoised version of itself.
+    # If this is not a recursive call and memoization is enabled, overwrite the `token_counter` with a memoized version of itself.
     if not _recursion_depth and memoize:
-        token_counter = _memoised_token_counters.setdefault(token_counter, cache(token_counter))
+        token_counter = _memoized_token_counters.setdefault(token_counter, cache(token_counter))
 
     # Split the text using the most semantically meaningful splitter possible.
     splitter, splitter_is_whitespace, splits = _split_text(text)
@@ -139,7 +139,7 @@ def chunk(text: str, chunk_size: int, token_counter: Callable[[str], int], memoi
     
     return chunks
 
-# Memoise the `chunk` function, preserving its signature and docstring.
+# Memoize the `chunk` function, preserving its signature and docstring.
 chunk = wraps(chunk)(cache(chunk))
 
 def chunkerify(
@@ -155,7 +155,7 @@ def chunkerify(
         tokenizer_or_token_counter (str | tiktoken.Encoding | transformers.PreTrainedTokenizer | tokenizers.Tokenizer | Callable[[str], int]): Either: the name of a `tiktoken` or `transformers` tokenizer (with priority given to the former); a tokenizer that possesses an `encode` attribute (eg, a `tiktoken`, `transformers` or `tokenizers` tokenizer); or a token counter that returns the number of tokens in a input.
         chunk_size (int, optional): The maximum number of tokens a chunk may contain. Defaults to `None` in which case it will be set to the same value as the tokenizer's `model_max_length` attribute (deducted by the number of tokens returned by attempting to tokenize an empty string) if possible otherwise a `ValueError` will be raised.
         max_token_chars (int, optional): The maximum numbers of characters a token may contain. Used to significantly speed up the token counting of long inputs. Defaults to `None` in which case it will either not be used or will, if possible, be set to the numbers of characters in the longest token in the tokenizer's vocabulary as determined by the `token_byte_values` or `get_vocab` methods.
-        memoize (bool, optional): Whether to memoise the token counter. Defaults to `True`.
+        memoize (bool, optional): Whether to memoize the token counter. Defaults to `True`.
     
     Returns:
         Callable[[str | Sequence[str]], list[str] | list[list[str]]]: A function that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts."""
@@ -239,7 +239,7 @@ def chunkerify(
     
     # Memoize the token counter if necessary.
     if memoize:
-        token_counter = _memoised_token_counters.setdefault(token_counter, cache(token_counter))
+        token_counter = _memoized_token_counters.setdefault(token_counter, cache(token_counter))
     
     # Construct and return the chunker.
     def chunker(text_or_texts: str | Sequence[str]) -> list[str] | list[list[str]]:

@@ -57,7 +57,7 @@ def chunkerify(
 
 `max_token_chars` is the maximum numbers of characters a token may contain. It is used to significantly speed up the token counting of long inputs. It defaults to `None` in which case it will either not be used or will, if possible, be set to the numbers of characters in the longest token in the tokenizer's vocabulary as determined by the `token_byte_values` or `get_vocab` methods.
 
-`memoize` flags whether to memoise the token counter. It defaults to `True`.
+`memoize` flags whether to memoize the token counter. It defaults to `True`.
 
 This function returns a callable that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
 
@@ -79,7 +79,7 @@ def chunk(
 
 `token_counter` is a callable that takes a string and returns the number of tokens in it.
 
-`memoize` flags whether to memoise the token counter. It defaults to `True`.
+`memoize` flags whether to memoize the token counter. It defaults to `True`.
 
 This function returns a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed.
 
