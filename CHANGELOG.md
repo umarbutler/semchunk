@@ -3,7 +3,7 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 
 ## [0.2.4] - 2024-05-13
 ### Changed
-- Improved chunking performance with larger chunk sizes by switching from linear to binary search for the identification of optimal chunk boundaries, courtesy of [@R0bk](https://github.com/R0bk) ([#3](https://github.com/umarbutler/semchunk/pull/3)) ([1e3ddb9](https://github.com/umarbutler/semchunk/pull/3/commits/1e3ddb91698f072da1d8a7d809a66467e1d31ff8)).
+- Improved chunking performance with larger chunk sizes by switching from linear to binary search for the identification of optimal chunk boundaries, courtesy of [@R0bk](https://github.com/R0bk) ([#3](https://github.com/umarbutler/semchunk/pull/3)) ([337a186](https://github.com/umarbutler/semchunk/pull/3/commits/337a18615f991076b076262288b0408cb162b48c)).
 
 ## [0.2.3] - 2024-03-11
 ### Fixed
