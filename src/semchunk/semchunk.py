@@ -73,7 +73,7 @@ def merge_splits(splits: list[str], chunk_size: int, splitter: str, token_counte
 
         tokens = token_counter(splitter.join(splits[:midpoint]))
 
-        average = cumulative_lengths[midpoint] / tokens if cumulative_lengths[midpoint] else average
+        average = cumulative_lengths[midpoint] / tokens if cumulative_lengths[midpoint] and tokens > 0 else average
 
         if tokens > chunk_size:
             high = midpoint
