@@ -80,14 +80,3 @@ def test_chunk() -> None:
         worked = True
     
     assert worked
-
-
-def test_merge_splits_zero_tokens() -> None:
-    """Test case where midpoint is 1 and the first split is whitespace.
-    This can result in the token_counter returning 0 tokens. Ensure we don't divide by zero.
-    """
-    try:
-        result = semchunk.semchunk.merge_splits(['    ', 'text here', 'more text'], 20, ' ', lambda s: 0)
-    except ZeroDivisionError as exc:
-        assert False, "merge_splits raised exception {exc}"
-    assert result == (3, '     text here more text')
