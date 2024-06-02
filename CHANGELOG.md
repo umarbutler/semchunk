@@ -1,6 +1,10 @@
 ## Changelog 🔄
 All notable changes to `semchunk` will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2024-06-02
+### Fixed
+- Documented the `progress` argument in the docstring for `chunkerify()` and in its type hints in the README.
+
 ## [1.0.0] - 2024-06-02
 ### Added
 - Added a `progress` argument to the chunker returned by `chunkerify()` that, when set to `True` and multiple texts are passed, displays a progress bar.

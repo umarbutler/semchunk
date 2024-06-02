@@ -46,7 +46,7 @@ def chunkerify(
     chunk_size: int = None,
     max_token_chars: int = None,
     memoize: bool = True,
-) -> Callable[[str | Sequence[str]], list[str] | list[list[str]]]:
+) -> Callable[[str | Sequence[str], bool], list[str] | list[list[str]]]:
 ```
 
 `chunkerify()` constructs a chunker that splits one or more texts into semantically meaningful chunks of a specified size as determined by the provided tokenizer or token counter.
