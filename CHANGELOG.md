@@ -3,7 +3,7 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 
 ## [1.0.1] - 2024-06-02
 ### Fixed
-- Documented the `progress` argument in the docstring for `chunkerify()` and in its type hints in the README.
+- Documented the `progress` argument in the docstring for `chunkerify()` and its type hint in the README.
 
 ## [1.0.0] - 2024-06-02
 ### Added
