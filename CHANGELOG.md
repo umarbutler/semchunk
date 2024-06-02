@@ -1,6 +1,10 @@
 ## Changelog 🔄
 All notable changes to `semchunk` will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2024-06-02
+### Added
+- Added a `progress` argument to the chunker returned by `chunkerify()` that, when set to `True` and multiple texts are passed, displays a progress bar.
+
 ## [0.3.2] - 2024-06-01
 ### Fixed
 - Fixed a bug where a `DivisionByZeroError` would be raised where a token counter returned zero tokens when called from `merge_splits()`, courtesy of [@jcobol](https://github.com/jcobol) ([#5](https://github.com/umarbutler/semchunk/pull/5)) ([7fd64eb](https://github.com/umarbutler/semchunk/pull/5/commits/7fd64eb8cf51f45702c59f43795be9a00c7d0d17)), fixing [#4](https://github.com/umarbutler/semchunk/issues/4).
@@ -56,6 +60,7 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 ### Added
 - Added the `chunk()` function, which splits text into semantically meaningful chunks of a specified size as determined by a provided token counter.
 
+[1.0.0]: https://github.com/umarbutler/semchunk/compare/v0.3.2...v1.0.0
 [0.3.2]: https://github.com/umarbutler/semchunk/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/umarbutler/semchunk/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/umarbutler/semchunk/compare/v0.2.4...v0.3.0

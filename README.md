@@ -1,5 +1,5 @@
 # semchunk
-<a href="https://pypi.org/project/semchunk/" alt="PyPI Version"><img src="https://img.shields.io/pypi/v/semchunk"></a> <a href="https://github.com/umarbutler/semchunk/actions/workflows/ci.yml" alt="Build Status"><img src="https://img.shields.io/github/actions/workflow/status/umarbutler/semchunk/ci.yml?branch=main"></a> <a href="https://app.codecov.io/gh/umarbutler/semchunk" alt="Code Coverage"><img src="https://img.shields.io/codecov/c/github/umarbutler/semchunk"></a> <!-- <a href="https://pypistats.org/packages/semchunk" alt="Downloads"><img src="https://img.shields.io/pypi/dm/semchunk"></a> -->
+<a href="https://pypi.org/project/semchunk/" alt="PyPI Version"><img src="https://img.shields.io/pypi/v/semchunk"></a> <a href="https://github.com/umarbutler/semchunk/actions/workflows/ci.yml" alt="Build Status"><img src="https://img.shields.io/github/actions/workflow/status/umarbutler/semchunk/ci.yml?branch=main"></a> <a href="https://app.codecov.io/gh/umarbutler/semchunk" alt="Code Coverage"><img src="https://img.shields.io/codecov/c/github/umarbutler/semchunk"></a> <a href="https://pypistats.org/packages/semchunk" alt="Downloads"><img src="https://img.shields.io/pypi/dm/semchunk"></a>
 
 `semchunk` is a fast and lightweight pure Python library for splitting text into semantically meaningful chunks.
 
@@ -35,7 +35,7 @@ chunker = semchunk.chunkerify('umarbutler/emubert', chunk_size) or \
 # The resulting `chunker` can take and chunk a single text or a list of texts, returning a list of
 # chunks or a list of lists of chunks, respectively.
 assert chunker(text) == ['The quick', 'brown', 'fox', 'jumps', 'over the', 'lazy', 'dog.']
-assert chunker([text]) == [['The quick', 'brown', 'fox', 'jumps', 'over the', 'lazy', 'dog.']]
+assert chunker([text], progress = True) == [['The quick', 'brown', 'fox', 'jumps', 'over the', 'lazy', 'dog.']]
 ```
 
 ### Chunkerify
@@ -59,7 +59,7 @@ def chunkerify(
 
 `memoize` flags whether to memoize the token counter. It defaults to `True`.
 
-This function returns a callable that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
+This function returns a callable that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts. The callable can also be passed a `progress` argument which if set to `True` and multiple texts are passed, will display a progress bar.
 
 ### Chunk
 ```python

@@ -83,3 +83,6 @@ def test_chunk() -> None:
         worked = True
     
     assert worked
+    
+    # Try enabling a progress bar.
+    chunker(['ThisIs\tATest.', 'ThisIs\tATest.'], progress = True)

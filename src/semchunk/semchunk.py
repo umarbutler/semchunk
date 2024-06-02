@@ -9,6 +9,8 @@ from functools import cache, wraps
 from itertools import accumulate
 from contextlib import suppress
 
+from tqdm import tqdm
+
 if TYPE_CHECKING:
     import tiktoken
     import tokenizers
@@ -242,18 +244,23 @@ def chunkerify(
         token_counter = _memoized_token_counters.setdefault(token_counter, cache(token_counter))
     
     # Construct and return the chunker.
-    def chunker(text_or_texts: str | Sequence[str]) -> list[str] | list[list[str]]:
+    def chunker(text_or_texts: str | Sequence[str], progress: bool = False) -> list[str] | list[list[str]]:
         """Split text or texts into semantically meaningful chunks of a specified size as determined by the provided tokenizer or token counter.
         
         Args:
             text_or_texts (str | Sequence[str]): The text or texts to be chunked.
         
         Returns:
-            list[str] | list[list[str]]: If a single text has been provided, a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts."""
+            list[str] | list[list[str]]: If a single text has been provided, a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
+            progress (bool, optional): Whether to display a progress bar when chunking multiple texts. Defaults to `False`."""
                 
         if isinstance(text_or_texts, str):
             return chunk(text_or_texts, chunk_size, token_counter, memoize = False)
         
-        return [chunk(text, chunk_size, token_counter, memoize = False) for text in text_or_texts]
+        if progress:
+            return [chunk(text, chunk_size, token_counter, memoize = False) for text in tqdm(text_or_texts)]
+        
+        else:
+            return [chunk(text, chunk_size, token_counter, memoize = False) for text in text_or_texts]
     
     return chunker
