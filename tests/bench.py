@@ -24,7 +24,7 @@ def bench() -> dict[str, float]:
 
     libraries = {
         'semchunk': bench_semchunk,
-        #'semantic_text_splitter': bench_semantic_text_splitter,
+        'semantic_text_splitter': bench_semantic_text_splitter,
     }
 
     # Download the Gutenberg corpus.
