@@ -84,7 +84,14 @@ def merge_splits(splits: list[str], chunk_size: int, splitter: str, token_counte
 
     return low - 1, splitter.join(splits[:low - 1])
 
-def chunk(text: str, chunk_size: int, token_counter: Callable[[str], int], memoize: bool = True, _recursion_depth: int = 0) -> list[str]:
+def chunk(
+    text: str,
+    chunk_size: int,
+    token_counter: Callable[[str], int],
+    memoize: bool = True,
+    _recursion_depth: int = 0,
+    _reattach_whitespace_splitters: bool = False,
+) -> list[str]:
     """Split a text into semantically meaningful chunks of a specified size as determined by the provided token counter.
 
     Args:
@@ -102,6 +109,7 @@ def chunk(text: str, chunk_size: int, token_counter: Callable[[str], int], memoi
 
     # Split the text using the most semantically meaningful splitter possible.
     splitter, splitter_is_whitespace, splits = _split_text(text)
+    if _reattach_whitespace_splitters: splitter_is_whitespace = False
     
     chunks = []
     skips = set()
@@ -115,7 +123,7 @@ def chunk(text: str, chunk_size: int, token_counter: Callable[[str], int], memoi
         
         # If the split is over the chunk size, recursively chunk it.
         if token_counter(split) > chunk_size:
-            chunks.extend(chunk(split, chunk_size, token_counter = token_counter, memoize = memoize, _recursion_depth = _recursion_depth + 1))
+            chunks.extend(chunk(split, chunk_size, token_counter = token_counter, memoize = memoize, _recursion_depth = _recursion_depth + 1, _reattach_whitespace_splitters = _reattach_whitespace_splitters))
 
         # If the split is equal to or under the chunk size, add it and any subsequent splits to a new chunk until the chunk size is reached.
         else:
