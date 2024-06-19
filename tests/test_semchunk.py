@@ -48,6 +48,10 @@ def test_chunk() -> None:
     chunker = semchunk.chunkerify(tiktoken_token_counter, 4)
     assert chunker(['ThisIs\tATest.', 'ThisIs\tATest.']) == [['ThisIs', 'ATest.'], ['ThisIs', 'ATest.']]
     
+    # Test chunking multiple texts with multiple processes.
+    chunker = semchunk.chunkerify(tiktoken_token_counter, 4)
+    assert chunker(['ThisIs\tATest.', 'ThisIs\tATest.'], processes = 2) == [['ThisIs', 'ATest.'], ['ThisIs', 'ATest.']]
+    
     # Test using a `transformers` tokenizer.
     chunker = semchunk.chunkerify(transformers_tokenizer)
     assert chunker('ThisIs\tATest.') == ['ThisIs\tATest.']

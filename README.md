@@ -36,6 +36,10 @@ chunker = semchunk.chunkerify('umarbutler/emubert', chunk_size) or \
 # chunks or a list of lists of chunks, respectively.
 assert chunker(text) == ['The quick', 'brown', 'fox', 'jumps', 'over the', 'lazy', 'dog.']
 assert chunker([text], progress = True) == [['The quick', 'brown', 'fox', 'jumps', 'over the', 'lazy', 'dog.']]
+
+# If you have a large number of texts to chunk and speed is a concern, you can also enable
+# multiprocessing by setting `processes` to a number greater than 1.
+assert chunker([text], processes = 2) == [['The quick', 'brown', 'fox', 'jumps', 'over the', 'lazy', 'dog.']]
 ```
 
 ### Chunkerify
@@ -46,7 +50,7 @@ def chunkerify(
     chunk_size: int = None,
     max_token_chars: int = None,
     memoize: bool = True,
-) -> Callable[[str | Sequence[str], bool], list[str] | list[list[str]]]:
+) -> Callable[[str | Sequence[str], bool, bool], list[str] | list[list[str]]]:
 ```
 
 `chunkerify()` constructs a chunker that splits one or more texts into semantically meaningful chunks of a specified size as determined by the provided tokenizer or token counter.
@@ -59,7 +63,11 @@ def chunkerify(
 
 `memoize` flags whether to memoize the token counter. It defaults to `True`.
 
-This function returns a callable that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts. The callable can also be passed a `progress` argument which if set to `True` and multiple texts are passed, will display a progress bar.
+This function returns a callable that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
+
+The resulting chunker function can also be passed a `processes` argument that specifies the number of processes to be used when chunking multiple texts.
+
+It is also possible to pass a `progress` argument which, if set to `True` and multiple texts are passed, will display a progress bar.
 
 ### Chunk
 ```python

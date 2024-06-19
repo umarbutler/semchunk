@@ -1,6 +1,13 @@
 ## Changelog 🔄
 All notable changes to `semchunk` will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2024-06-19
+### Added
+- Added support for multiprocessing through the `processes` argument passable to chunkers constructed by `chunkerify()`.
+
+### Removed
+- No longer guaranteed that `semchunk` is pure Python.
+
 ## [1.0.1] - 2024-06-02
 ### Fixed
 - Documented the `progress` argument in the docstring for `chunkerify()` and its type hint in the README.

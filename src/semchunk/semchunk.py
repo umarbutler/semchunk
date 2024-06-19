@@ -9,6 +9,8 @@ from functools import cache, wraps
 from itertools import accumulate
 from contextlib import suppress
 
+import mpire
+
 from tqdm import tqdm
 
 if TYPE_CHECKING:
@@ -168,7 +170,11 @@ def chunkerify(
         memoize (bool, optional): Whether to memoize the token counter. Defaults to `True`.
     
     Returns:
-        Callable[[str | Sequence[str], bool], list[str] | list[list[str]]]: A function that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts. The function can also be passed a `progress` argument which if set to `True` and multiple texts are passed, will display a progress bar."""
+        Callable[[str | Sequence[str], bool, bool], list[str] | list[list[str]]]: A function that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
+        
+        The resulting chunker function can also be passed a `processes` argument that specifies the number of processes to be used when chunking multiple texts.
+        
+        It is also possible to pass a `progress` argument which, if set to `True` and multiple texts are passed, will display a progress bar."""
     
     # If the provided tokenizer is a string, try to load it with either `tiktoken` or `transformers` or raise an error if neither is available.
     if isinstance(tokenizer_or_token_counter, str):
@@ -251,8 +257,16 @@ def chunkerify(
     if memoize:
         token_counter = _memoized_token_counters.setdefault(token_counter, cache(token_counter))
     
+    # Construct a chunking function that passes the chunk size and token counter to `chunk()`.
+    def chunking_function(text: str) -> list[str]:
+        return chunk(text, chunk_size, token_counter, memoize = False)
+    
     # Construct and return the chunker.
-    def chunker(text_or_texts: str | Sequence[str], progress: bool = False) -> list[str] | list[list[str]]:
+    def chunker(
+        text_or_texts: str | Sequence[str],
+        processes: int = 1,
+        progress: bool = False,
+    ) -> list[str] | list[list[str]]:
         """Split text or texts into semantically meaningful chunks of a specified size as determined by the provided tokenizer or token counter.
         
         Args:
@@ -260,15 +274,19 @@ def chunkerify(
         
         Returns:
             list[str] | list[list[str]]: If a single text has been provided, a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
+            processes (int, optional): The number of processes to use when chunking multiple texts. Defaults to `1` in which case chunking will occur in the main process.
             progress (bool, optional): Whether to display a progress bar when chunking multiple texts. Defaults to `False`."""
                 
         if isinstance(text_or_texts, str):
-            return chunk(text_or_texts, chunk_size, token_counter, memoize = False)
+            return chunking_function(text_or_texts)
         
-        if progress:
-            return [chunk(text, chunk_size, token_counter, memoize = False) for text in tqdm(text_or_texts)]
+        if progress and processes == 1:
+            text_or_texts = tqdm(text_or_texts)
         
-        else:
-            return [chunk(text, chunk_size, token_counter, memoize = False) for text in text_or_texts]
+        if processes == 1:
+            return [chunking_function(text) for text in text_or_texts]
+        
+        with mpire.WorkerPool(processes, use_dill = True) as pool:
+            return pool.map(chunking_function, text_or_texts, progress_bar = progress)
     
     return chunker
