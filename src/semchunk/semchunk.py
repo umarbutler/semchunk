@@ -157,7 +157,7 @@ def chunkerify(
     chunk_size: int = None,
     max_token_chars: int = None,
     memoize: bool = True,
-): # NOTE The output of `chunkerify()` is not type hinted because it causes `vscode` to overwrite the signature and docstring of the outputted chunker with the type hint.
+) -> Callable[[str | Sequence[str], int, bool], list[str] | list[list[str]]]:
     """Construct a chunker that splits one or more texts into semantically meaningful chunks of a specified size as determined by the provided tokenizer or token counter.
     
     Args:
@@ -167,11 +167,9 @@ def chunkerify(
         memoize (bool, optional): Whether to memoize the token counter. Defaults to `True`.
     
     Returns:
-        Callable[[str | Sequence[str], bool, bool], list[str] | list[list[str]]]: A function that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
-        
-        The resulting chunker function can also be passed a `processes` argument that specifies the number of processes to be used when chunking multiple texts.
-        
-        It is also possible to pass a `progress` argument which, if set to `True` and multiple texts are passed, will display a progress bar."""
+        Callable[[str | Sequence[str], int, bool], list[str] | list[list[str]]]: A function that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
+            The resulting chunker function can also be passed a `processes` argument that specifies the number of processes to be used when chunking multiple texts.
+            It is also possible to pass a `progress` argument which, if set to `True` and multiple texts are passed, will display a progress bar."""
     
     # If the provided tokenizer is a string, try to load it with either `tiktoken` or `transformers` or raise an error if neither is available.
     if isinstance(tokenizer_or_token_counter, str):
@@ -181,7 +179,7 @@ def chunkerify(
             try:
                 tokenizer = tiktoken.encoding_for_model(tokenizer_or_token_counter)
             
-            except Exception:
+            except ImportError:
                 tokenizer = tiktoken.get_encoding(tokenizer_or_token_counter)
         
         except Exception:
@@ -190,7 +188,7 @@ def chunkerify(
                 
                 tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer_or_token_counter)
             
-            except Exception:
+            except ImportError:
                 raise ValueError(f'"{tokenizer_or_token_counter}" was provided to `semchunk.chunkerify` as the name of a tokenizer but neither `tiktoken` nor `transformers` have a tokenizer by that name. Perhaps they are not installed or maybe there is a typo in that name?')
         
         tokenizer_or_token_counter = tokenizer
