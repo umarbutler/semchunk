@@ -108,8 +108,6 @@ To ensure that chunks are as semantically meaningful as possible, `semchunk` use
 1. Word joiners (`/`, `\`, `–`, `&` and `-`); and
 1. All other characters.
 
-`semchunk` also relies on memoization to cache the results of token counters and the `chunk()` function, thereby improving performance.
-
 ## Benchmarks 📊
 On a desktop with a Ryzen 3600, 64 GB of RAM, Windows 11 and Python 3.11.9, it takes `semchunk` 6.69 seconds to split every sample in [NLTK's Gutenberg Corpus](https://www.nltk.org/howto/corpus.html#plaintext-corpora) into 512-token-long chunks with GPT-4's tokenizer (for context, the Corpus contains 18 texts and 3,001,260 tokens). By comparison, it takes [`semantic-text-splitter`](https://pypi.org/project/semantic-text-splitter/) 116.48 seconds to chunk the same texts into 512-token-long chunks — a difference of 94.26%.
 
