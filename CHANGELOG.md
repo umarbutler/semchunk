@@ -1,6 +1,10 @@
 ## Changelog 🔄
 All notable changes to `semchunk` will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2024-06-20
+### Fixed
+- Ceased memoizing `chunk()` (but not token counters) due to the fact that cached outputs of memoized functions are shallow rather than deep copies of original outputs, meaning that if one were to chunk a text and then chunk that same text again and then modify one of the chunks outputted by the first call, the chunks outputted by the second call would also be modified. This behaviour is not expected and therefore undesirable. The memoization of token counters is not impacted as they output immutable objects, namely, integers.
+
 ## [2.0.0] - 2024-06-19
 ### Added
 - Added support for multiprocessing through the `processes` argument passable to chunkers constructed by `chunkerify()`.
@@ -71,6 +75,7 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 ### Added
 - Added the `chunk()` function, which splits text into semantically meaningful chunks of a specified size as determined by a provided token counter.
 
+[2.1.0]: https://github.com/umarbutler/semchunk/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/umarbutler/semchunk/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/umarbutler/semchunk/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/umarbutler/semchunk/compare/v0.3.2...v1.0.0

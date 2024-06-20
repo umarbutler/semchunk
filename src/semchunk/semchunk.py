@@ -5,7 +5,7 @@ import inspect
 
 from bisect import bisect_left
 from typing import Callable, Sequence, TYPE_CHECKING
-from functools import cache, wraps
+from functools import cache
 from itertools import accumulate
 from contextlib import suppress
 
@@ -150,9 +150,6 @@ def chunk(
         chunks = list(filter(None, chunks))
     
     return chunks
-
-# Memoize the `chunk` function, preserving its signature and docstring.
-chunk = wraps(chunk)(cache(chunk))
 
 def chunkerify(
     tokenizer_or_token_counter: str | tiktoken.Encoding | transformers.PreTrainedTokenizer \
