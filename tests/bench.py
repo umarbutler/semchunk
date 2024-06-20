@@ -16,6 +16,7 @@ def bench() -> dict[str, float]:
     semchunk_chunker = semchunk.chunkerify(tiktoken.encoding_for_model('gpt-4'), CHUNK_SIZE)
     sts_chunker = TextSplitter.from_tiktoken_model('gpt-4', CHUNK_SIZE)
 
+    # Initalise the benchmarking functions.
     def bench_semchunk(texts: list[str]) -> None:
         semchunk_chunker(texts)
 
