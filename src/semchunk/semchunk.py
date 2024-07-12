@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     import tokenizers
     import transformers
 
+
 _memoized_token_counters = {}
 """A map of token counters to their memoized versions."""
 
@@ -28,6 +29,7 @@ _NON_WHITESPACE_SEMANTIC_SPLITTERS = (
     '/', '\\', '–', '&', '-', # Word joiners.
 )
 """A tuple of semantically meaningful non-whitespace splitters that may be used to chunk texts, ordered from most desirable to least desirable."""
+
 
 def _split_text(text: str) -> tuple[str, bool, list[str]]:
     """Split text using the most semantically meaningful splitter possible."""
@@ -151,13 +153,51 @@ def chunk(
     
     return chunks
 
+
+class Chunker:    
+    def __init__(self, chunk_size: int, token_counter: Callable[[str], int]) -> None:
+        self.chunk_size = chunk_size
+        self.token_counter = token_counter
+    
+    def chunk(self, text: str) -> list[str]:
+        """Chunk a text."""
+        
+        return chunk(text, self.chunk_size, self.token_counter, memoize = False)
+    
+    def __call__(
+        self,
+        text_or_texts: str | Sequence[str],
+        processes: int = 1,
+        progress: bool = False,
+    ) -> list[str] | list[list[str]]:
+        """Split text or texts into semantically meaningful chunks of a specified size as determined by the provided tokenizer or token counter.
+        
+        Args:
+            text_or_texts (str | Sequence[str]): The text or texts to be chunked.
+        
+        Returns:
+            list[str] | list[list[str]]: If a single text has been provided, a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
+            processes (int, optional): The number of processes to use when chunking multiple texts. Defaults to `1` in which case chunking will occur in the main process.
+            progress (bool, optional): Whether to display a progress bar when chunking multiple texts. Defaults to `False`."""
+        if isinstance(text_or_texts, str):
+            return self.chunk(text_or_texts)
+        
+        if progress and processes == 1:
+            text_or_texts = tqdm(text_or_texts)
+        
+        if processes == 1:
+            return [self.chunk(text) for text in text_or_texts]
+        
+        with mpire.WorkerPool(processes, use_dill = True) as pool:
+            return pool.map(self.chunk, text_or_texts, progress_bar = progress)
+
 def chunkerify(
     tokenizer_or_token_counter: str | tiktoken.Encoding | transformers.PreTrainedTokenizer \
                                 | tokenizers.Tokenizer | Callable[[str], int],
-    chunk_size: int = None,
-    max_token_chars: int = None,
+    chunk_size: int | None = None,
+    max_token_chars: int | None = None,
     memoize: bool = True,
-): # NOTE The output of `chunkerify()` is not type hinted because it causes `vscode` to overwrite the signature and docstring of the outputted chunker with the type hint.
+) -> Chunker:
     """Construct a chunker that splits one or more texts into semantically meaningful chunks of a specified size as determined by the provided tokenizer or token counter.
     
     Args:
@@ -167,11 +207,13 @@ def chunkerify(
         memoize (bool, optional): Whether to memoize the token counter. Defaults to `True`.
     
     Returns:
-        Callable[[str | Sequence[str], bool, bool], list[str] | list[list[str]]]: A function that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
+        Callable[[str | Sequence[str], bool, bool], list[str] | list[list[str]]]: A chunker that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
         
-        The resulting chunker function can also be passed a `processes` argument that specifies the number of processes to be used when chunking multiple texts.
+        The resulting chunker can be passed a `processes` argument that specifies the number of processes to be used when chunking multiple texts.
         
-        It is also possible to pass a `progress` argument which, if set to `True` and multiple texts are passed, will display a progress bar."""
+        It is also possible to pass a `progress` argument which, if set to `True` and multiple texts are passed, will display a progress bar.
+        
+        Technically, the chunker will be an instance of the `semchunk.Chunker` class to assist with type hinting, though this should have no impact on how it can be used."""
     
     # If the provided tokenizer is a string, try to load it with either `tiktoken` or `transformers` or raise an error if neither is available.
     if isinstance(tokenizer_or_token_counter, str):
@@ -254,36 +296,5 @@ def chunkerify(
     if memoize:
         token_counter = _memoized_token_counters.setdefault(token_counter, cache(token_counter))
     
-    # Construct a chunking function that passes the chunk size and token counter to `chunk()`.
-    def chunking_function(text: str) -> list[str]:
-        return chunk(text, chunk_size, token_counter, memoize = False)
-    
     # Construct and return the chunker.
-    def chunker(
-        text_or_texts: str | Sequence[str],
-        processes: int = 1,
-        progress: bool = False,
-    ) -> list[str] | list[list[str]]:
-        """Split text or texts into semantically meaningful chunks of a specified size as determined by the provided tokenizer or token counter.
-        
-        Args:
-            text_or_texts (str | Sequence[str]): The text or texts to be chunked.
-        
-        Returns:
-            list[str] | list[list[str]]: If a single text has been provided, a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
-            processes (int, optional): The number of processes to use when chunking multiple texts. Defaults to `1` in which case chunking will occur in the main process.
-            progress (bool, optional): Whether to display a progress bar when chunking multiple texts. Defaults to `False`."""
-                
-        if isinstance(text_or_texts, str):
-            return chunking_function(text_or_texts)
-        
-        if progress and processes == 1:
-            text_or_texts = tqdm(text_or_texts)
-        
-        if processes == 1:
-            return [chunking_function(text) for text in text_or_texts]
-        
-        with mpire.WorkerPool(processes, use_dill = True) as pool:
-            return pool.map(chunking_function, text_or_texts, progress_bar = progress)
-    
-    return chunker
+    return Chunker(chunk_size, token_counter)

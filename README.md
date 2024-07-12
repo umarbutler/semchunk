@@ -66,11 +66,13 @@ def chunkerify(
 
 `memoize` flags whether to memoize the token counter. It defaults to `True`.
 
-This function returns a callable that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
+This function returns a chunker that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
 
-The resulting chunker function can also be passed a `processes` argument that specifies the number of processes to be used when chunking multiple texts.
+The resulting chunker can be passed a `processes` argument that specifies the number of processes to be used when chunking multiple texts.
 
 It is also possible to pass a `progress` argument which, if set to `True` and multiple texts are passed, will display a progress bar.
+
+Technically, the chunker will be an instance of the `semchunk.Chunker` class to assist with type hinting, though this should have no impact on how it can be used.
 
 ### Chunk
 ```python

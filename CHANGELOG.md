@@ -1,6 +1,10 @@
 ## Changelog 🔄
 All notable changes to `semchunk` will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2024-07-12
+### Changed
+- Switched from having `chunkerify()` output a function to having it return an instance of the new `Chunker()` class which should not alter functionality in any way but will allow for the preservation of type hints, fixing [#7](https://github.com/umarbutler/semchunk/pull/7).
+
 ## [2.1.0] - 2024-06-20
 ### Fixed
 - Ceased memoizing `chunk()` (but not token counters) due to the fact that cached outputs of memoized functions are shallow rather than deep copies of original outputs, meaning that if one were to chunk a text and then chunk that same text again and then modify one of the chunks outputted by the first call, the chunks outputted by the second call would also be modified. This behaviour is not expected and therefore undesirable. The memoization of token counters is not impacted as they output immutable objects, namely, integers.
