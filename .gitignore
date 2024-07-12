@@ -18,6 +18,7 @@
 *.pyc
 *.pyo
 *.ipynb
+*.parquet
 __pycache__/
 .pytest_cache/
 tests/profiler.py
