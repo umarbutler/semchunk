@@ -13,10 +13,7 @@ import mpire
 
 from tqdm import tqdm
 
-if TYPE_CHECKING:
-    import tiktoken
-    import tokenizers
-    import transformers
+if TYPE_CHECKING: import tiktoken, tokenizers, transformers
 
 
 _memoized_token_counters = {}
