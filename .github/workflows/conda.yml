@@ -1,9 +1,6 @@
 name: Build and Publish Conda Package
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
