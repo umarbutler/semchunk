@@ -1,0 +1,80 @@
+name: Build and Publish Conda Package
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-conda-package:
+    name: Build Conda Package
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up Miniconda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        python-version: 3.12
+        activate-environment: base
+        channels: conda-forge
+        use-only-tar-bz2: true
+
+    - name: Install Dependencies
+      run: |
+        conda install -y grayskull conda-build anaconda-client
+
+    - name: Generate Conda Recipe with Grayskull
+      run: |
+        grayskull pypi semchunk
+
+    - name: Build Conda Package
+      run: |
+        conda-build -c conda-forge semchunk --output-folder output
+
+    - name: Upload Package to Anaconda (optional)
+      if: ${{ secrets.ANACONDA_TOKEN }}
+      env:
+        ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+      run: |
+        conda install -y anaconda-client
+        anaconda upload --label main output/noarch/*.tar.bz2
+
+  submit-to-conda-forge:
+    name: Submit Recipe to Conda-Forge
+    runs-on: ubuntu-latest
+    needs: build-conda-package
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Fork Conda-Forge Staging Feedstock
+      run: |
+        git clone https://github.com/conda-forge/staged-recipes.git
+        cd staged-recipes
+        git remote add myfork https://github.com/umarbutler/staged-recipes.git
+        git fetch myfork
+        git checkout -b add-semchunk
+
+    - name: Add Conda Recipe to Staged Recipes
+      run: |
+        cp -r semchunk staged-recipes/recipes/semchunk
+        cd staged-recipes
+        git add recipes/semchunk
+        git commit -m "Add semchunk recipe"
+        git push -u myfork add-semchunk
+
+    - name: Open Pull Request to Conda-Forge
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        branch: add-semchunk
+        commit-message: "Add semchunk recipe"
+        title: "Add semchunk recipe to conda-forge"
+        body: |
+          This PR adds the semchunk recipe for conda-forge.
