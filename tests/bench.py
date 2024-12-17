@@ -49,5 +49,6 @@ def bench() -> dict[str, float]:
 
 if __name__ == '__main__':
     nltk.download('gutenberg')
+    
     for library, time_taken in bench().items():
         print(f'{library}: {time_taken:.2f}s')
