@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "semchunk"
-version = "2.2.1"
+version = "2.2.2"
 authors = [
   {name="Umar Butler", email="umar@umar.au"},
 ]
@@ -53,3 +53,6 @@ Homepage = "https://github.com/umarbutler/semchunk"
 Documentation = "https://github.com/umarbutler/semchunk/blob/main/README.md"
 Issues = "https://github.com/umarbutler/semchunk/issues"
 Source = "https://github.com/umarbutler/semchunk"
+
+[tool.hatch.build.targets.sdist]
+only-include = ['src/semchunk/__init__.py', 'src/semchunk/py.typed', 'src/semchunk/semchunk.py', 'pyproject.toml', 'README.md', 'LICENCE', 'CHANGELOG.md', 'tests/bench.py', 'tests/test_semchunk.py', '.github/workflows/ci.yml']
