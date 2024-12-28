@@ -171,11 +171,11 @@ class Chunker:
         
         Args:
             text_or_texts (str | Sequence[str]): The text or texts to be chunked.
+            processes (int, optional): The number of processes to use when chunking multiple texts. Defaults to `1` in which case chunking will occur in the main process.
+            progress (bool, optional): Whether to display a progress bar when chunking multiple texts. Defaults to `False`.
         
         Returns:
-            list[str] | list[list[str]]: If a single text has been provided, a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
-            processes (int, optional): The number of processes to use when chunking multiple texts. Defaults to `1` in which case chunking will occur in the main process.
-            progress (bool, optional): Whether to display a progress bar when chunking multiple texts. Defaults to `False`."""
+            list[str] | list[list[str]]: If a single text has been provided, a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts."""
         if isinstance(text_or_texts, str):
             return self.chunk(text_or_texts)
         
