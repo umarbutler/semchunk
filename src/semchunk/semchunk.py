@@ -208,9 +208,7 @@ def chunkerify(
         
         The resulting chunker can be passed a `processes` argument that specifies the number of processes to be used when chunking multiple texts.
         
-        It is also possible to pass a `progress` argument which, if set to `True` and multiple texts are passed, will display a progress bar.
-        
-        Technically, the chunker will be an instance of the `semchunk.Chunker` class to assist with type hinting, though this should have no impact on how it can be used."""
+        It is also possible to pass a `progress` argument which, if set to `True` and multiple texts are passed, will display a progress bar."""
     
     # If the provided tokenizer is a string, try to load it with either `tiktoken` or `transformers` or raise an error if neither is available.
     if isinstance(tokenizer_or_token_counter, str):
