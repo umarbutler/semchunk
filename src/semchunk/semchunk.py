@@ -90,9 +90,11 @@ def chunk(
     chunk_size: int,
     token_counter: Callable[[str], int],
     memoize: bool = True,
+    offsets: bool = False,
     _recursion_depth: int = 0,
     _reattach_whitespace_splitters: bool = False,
-) -> list[str]:
+    _start: int = 0,
+) -> list[str] | tuple[list[str], list[tuple[int, int]]]:
     """Split a text into semantically meaningful chunks of a specified size as determined by the provided token counter.
 
     Args:
@@ -100,9 +102,10 @@ def chunk(
         chunk_size (int): The maximum number of tokens a chunk may contain.
         token_counter (Callable[[str], int]): A callable that takes a string and returns the number of tokens in it.
         memoize (bool, optional): Whether to memoize the token counter. Defaults to `True`.
+        offsets (bool, optional): Whether to return the start and end offsets of each chunk. Defaults to `False`.
     
     Returns:
-        list[str]: A list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed."""
+        list[str] | tuple[list[str], list[tuple[int, int]]]: A list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, and, if `offsets` is `True`, a list of tuples of the form `(start, end)` where `start` is the index of the first character of the chunk in the original text and `end` is the index of the character after the last character of the chunk such that `chunks[i] == text[offsets[i][0]:offsets[i][1]]`."""
     
     # If this is not a recursive call and memoization is enabled, overwrite the `token_counter` with a memoized version of itself.
     if not _recursion_depth and memoize:
@@ -111,6 +114,14 @@ def chunk(
     # Split the text using the most semantically meaningful splitter possible.
     splitter, splitter_is_whitespace, splits = _split_text(text)
     if _reattach_whitespace_splitters: splitter_is_whitespace = False
+
+    if offsets:
+        offsets_ = []
+        splitter_len = len(splitter)
+        local_split_starts = list(accumulate([0] + [len(split) + splitter_len for split in splits]))
+    
+    else:
+        split_start = 0
     
     chunks = []
     skips = set()
@@ -122,10 +133,23 @@ def chunk(
         if i in skips:
             continue
         
+        # Compute the start offset of the split if necessary.
+        if offsets:
+            split_start = local_split_starts[i] + _start
+        
         # If the split is over the chunk size, recursively chunk it.
         if token_counter(split) > chunk_size:
-            chunks.extend(chunk(split, chunk_size, token_counter = token_counter, memoize = memoize, _recursion_depth = _recursion_depth + 1, _reattach_whitespace_splitters = _reattach_whitespace_splitters))
-
+            new_chunks = chunk(text = split, chunk_size = chunk_size, token_counter = token_counter, memoize = memoize, offsets = offsets, _recursion_depth = _recursion_depth + 1, _reattach_whitespace_splitters = _reattach_whitespace_splitters, _start = split_start)
+            
+            if not new_chunks:
+                raise ValueError(f"`semchunk` was given a `chunk_size` smaller than the number of tokens in an empty string ({token_counter(''):,}). Try increasing the `chunk_size` to >={token_counter('') + 2:,}.")
+            
+            if offsets:
+                new_chunks, new_offsets = new_chunks
+                offsets_.extend(new_offsets)
+            
+            chunks.extend(new_chunks)
+            
         # If the split is equal to or under the chunk size, add it and any subsequent splits to a new chunk until the chunk size is reached.
         else:
             # Merge the split with subsequent splits until the chunk size is reached.
@@ -136,57 +160,103 @@ def chunk(
             
             # Add the chunk.
             chunks.append(new_chunk)
+            
+            # Add the chunk's offsets if necessary.
+            if offsets:
+                split_end = _start + local_split_starts[i + final_split_in_chunk_i] - splitter_len
+                offsets_.append((split_start, split_end))
 
-        # If the splitter is not whitespace and the split is not the last split, add the splitter to the end of the latest chunk if one exists and doing so would not cause it to exceed the chunk size otherwise add the splitter as a new chunk.
+        # If the splitter is not whitespace and the split is not the last split, add the splitter to the end of the latest chunk if doing so would not cause it to exceed the chunk size otherwise add the splitter as a new chunk.
         if not splitter_is_whitespace and not (i == len(splits) - 1 or all(j in skips for j in range(i + 1, len(splits)))):
-            if chunks and token_counter(last_chunk_with_splitter := chunks[-1] + splitter) <= chunk_size:
+            if token_counter(last_chunk_with_splitter := chunks[-1] + splitter) <= chunk_size:
                 chunks[-1] = last_chunk_with_splitter
+                
+                # Add the splitter's length to the offset for the updated chunk if necessary.
+                if offsets:
+                    start, end = offsets_[-1]
+                    offsets_[-1] = (start, end + splitter_len)
+                
             else:
                 chunks.append(splitter)
+                
+                # Add the splitter's offsets if necessary.
+                if offsets:
+                    offsets_.append((split_start, split_start + splitter_len))
     
     # If this is not a recursive call, remove any empty chunks.
+    if offsets:
+        if not _recursion_depth:
+            chunks, offsets_ = zip(*[(chunk, offset) for chunk, offset in zip(chunks, offsets_) if chunk])
+            
+            return list(chunks), list(offsets_)
+        
+        return chunks, offsets_
+    
     if not _recursion_depth:
         chunks = list(filter(None, chunks))
     
     return chunks
 
 
-class Chunker:    
+class Chunker:
     def __init__(self, chunk_size: int, token_counter: Callable[[str], int]) -> None:
         self.chunk_size = chunk_size
         self.token_counter = token_counter
     
-    def chunk(self, text: str) -> list[str]:
-        """Chunk a text."""
+    def _make_chunk_function(self, offsets: bool) -> Callable[[str], list[str] | tuple[list[str], list[tuple[int, int]]]]:
+        """Construct a function that chunks a text and returns the chunks along with their offsets if necessary."""
         
-        return chunk(text, self.chunk_size, self.token_counter, memoize = False)
+        def _chunk(text: str) -> list[str] | tuple[list[str], list[tuple[int, int]]]:
+            return chunk(
+                text = text,
+                chunk_size = self.chunk_size,
+                token_counter = self.token_counter,
+                memoize = False,
+                offsets = offsets,
+            )
+        
+        return _chunk
     
     def __call__(
         self,
         text_or_texts: str | Sequence[str],
         processes: int = 1,
         progress: bool = False,
-    ) -> list[str] | list[list[str]]:
+        offsets: bool = False,
+    ) -> list[str] | tuple[list[str], list[tuple[int, int]]] | list[list[str]] | tuple[list[list[str]], list[list[tuple[int, int]]]]:
         """Split text or texts into semantically meaningful chunks of a specified size as determined by the provided tokenizer or token counter.
         
         Args:
             text_or_texts (str | Sequence[str]): The text or texts to be chunked.
             processes (int, optional): The number of processes to use when chunking multiple texts. Defaults to `1` in which case chunking will occur in the main process.
             progress (bool, optional): Whether to display a progress bar when chunking multiple texts. Defaults to `False`.
+            output_offsets (bool, optional): Whether to return the start and end offsets of each chunk. Defaults to `False`.
         
         Returns:
-            list[str] | list[list[str]]: If a single text has been provided, a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts."""
+            list[str] | tuple[list[str], list[tuple[int, int]]] | list[list[str]] | tuple[list[list[str]], list[list[tuple[int, int]]]]: If a single text has been provided, a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, and, if `offsets` is `True`, a list of tuples of the form `(start, end)` where `start` is the index of the first character of the chunk in the original text and `end` is the index of the character succeeding the last character of the chunk such that `chunks[i] == text[offsets[i][0]:offsets[i][1]]`.
+            
+            If multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts, and, if `offsets` is `True`, a list of lists of tuples of the chunks' offsets to the original texts, as described above."""
+        
+        chunk_function = self._make_chunk_function(offsets)
+            
         if isinstance(text_or_texts, str):
-            return self.chunk(text_or_texts)
+            return chunk_function(text_or_texts)
         
         if progress and processes == 1:
             text_or_texts = tqdm(text_or_texts)
         
         if processes == 1:
-            return [self.chunk(text) for text in text_or_texts]
+            chunks_and_offsets = [chunk_function(text) for text in text_or_texts]
         
         with mpire.WorkerPool(processes, use_dill = True) as pool:
-            return pool.map(self.chunk, text_or_texts, progress_bar = progress)
+            chunks_and_offsets = pool.map(chunk_function, text_or_texts, progress_bar = progress)
+        
+        if offsets:
+            chunks, offsets_ = zip(*chunks_and_offsets)
+            
+            return list(chunks), list(offsets_)
+        
+        return chunks_and_offsets
 
 def chunkerify(
     tokenizer_or_token_counter: str | tiktoken.Encoding | transformers.PreTrainedTokenizer \
@@ -204,11 +274,13 @@ def chunkerify(
         memoize (bool, optional): Whether to memoize the token counter. Defaults to `True`.
     
     Returns:
-        Callable[[str | Sequence[str], bool, bool], list[str] | list[list[str]]]: A chunker that takes either a single text or a sequence of texts and returns, if a single text has been provided, a list of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, or, if multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts.
+        Callable[[str | Sequence[str], bool, bool, bool], list[str] | tuple[list[str], list[tuple[int, int]]] | list[list[str]] | tuple[list[list[str]], list[list[tuple[int, int]]]]]: A chunker that takes either a single text or a sequence of texts and returns, depending on whether multiple texts have been provided, a list or list of lists of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, and, if the optional `offsets` argument to the chunker is `True`, a list or lists of tuples of the form `(start, end)` where `start` is the index of the first character of a chunk in a text and `end` is the index of the character succeeding the last character of the chunk such that `chunks[i] == text[offsets[i][0]:offsets[i][1]]`. 
         
         The resulting chunker can be passed a `processes` argument that specifies the number of processes to be used when chunking multiple texts.
         
-        It is also possible to pass a `progress` argument which, if set to `True` and multiple texts are passed, will display a progress bar."""
+        It is also possible to pass a `progress` argument which, if set to `True` and multiple texts are passed, will display a progress bar.
+        
+        As described above, the `offsets` argument, if set to `True`, will cause the chunker to return the start and end offsets of each chunk."""
     
     # If the provided tokenizer is a string, try to load it with either `tiktoken` or `transformers` or raise an error if neither is available.
     if isinstance(tokenizer_or_token_counter, str):
@@ -292,4 +364,4 @@ def chunkerify(
         token_counter = _memoized_token_counters.setdefault(token_counter, cache(token_counter))
     
     # Construct and return the chunker.
-    return Chunker(chunk_size, token_counter)
+    return Chunker(chunk_size = chunk_size, token_counter = token_counter)
