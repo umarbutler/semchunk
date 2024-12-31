@@ -2,16 +2,16 @@
 All notable changes to `semchunk` will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [3.0.0] - 2024-12-31
-### Changed
-- Began removing chunks comprised entirely of whitespace characters from the output of `chunk()`.
-- Updated `semchunk`'s description from 'A fast and lightweight Python library for splitting text into semantically meaningful chunks.' and 'A fast, lightweight and easy-to-use Python library for splitting text into semantically meaningful chunks.'.
-
 ### Added
 - Added an `offsets` argument to `chunk()` and `Chunker.__call__()` that specifies whether to return the start and end offsets of each chunk ([#9](https://github.com/umarbutler/semchunk/issues/9)). The argument defaults to `False`.
 - Added an `overlap` argument to `chunk()` and `Chunker.__call__()` that specifies the proportion of the chunk size, or, if >=1, the number of tokens, by which chunks should overlap ([#1](https://github.com/umarbutler/semchunk/issues/1)). The argument defaults to `None`, in which case no overlapping occurs.
 - Began raising a `ValueError` where the `chunk_size` is smaller than the number of tokens in an empty string (i.e, where the token counter adds special tokens to every input).
 - Added an undocumented, private `_make_chunk_function()` method to the `Chunker` class that constructs chunking functions with call-level arguments passed.
 - Added more unit tests for new features as well as for multiple token counters and for ensuring there are no chunks comprised entirely of whitespace characters.
+
+### Changed
+- Began removing chunks comprised entirely of whitespace characters from the output of `chunk()`.
+- Updated `semchunk`'s description from 'A fast and lightweight Python library for splitting text into semantically meaningful chunks.' and 'A fast, lightweight and easy-to-use Python library for splitting text into semantically meaningful chunks.'.
 
 ### Fixed
 - Fixed a typo in the docstring for the `__call__()` method of the `Chunker` class returned by `chunkerify()` where most of the documentation for the arguments were listed under the section for the method's returns.
