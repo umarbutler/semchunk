@@ -1,6 +1,6 @@
 <div align='center'>
 
-# semchunk🧩
+# semchunk 🧩
 <a href="https://pypi.org/project/semchunk/" alt="PyPI Version"><img src="https://img.shields.io/pypi/v/semchunk"></a> <a href="https://github.com/umarbutler/semchunk/actions/workflows/ci.yml" alt="Build Status"><img src="https://img.shields.io/github/actions/workflow/status/umarbutler/semchunk/ci.yml?branch=main"></a> <a href="https://app.codecov.io/gh/umarbutler/semchunk" alt="Code Coverage"><img src="https://img.shields.io/codecov/c/github/umarbutler/semchunk"></a> <a href="https://pypistats.org/packages/semchunk" alt="Downloads"><img src="https://img.shields.io/pypi/dm/semchunk"></a>
 
 </div>
@@ -26,7 +26,7 @@ conda install -c conda-forge semchunk
 
 In addition, [@dominictarro](https://github.com/dominictarro) maintains a Rust port of `semchunk` named [`semchunk-rs`](https://crates.io/crates/semchunk-rs).
 
-## Usage 👩‍💻
+## Quickstart 👩‍💻
 The code snippet below demonstrates how to chunk text with `semchunk`:
 ```python
 
@@ -62,6 +62,7 @@ assert chunker([text], processes = 2) == [['The quick brown fox', 'jumps over th
 chunks, offsets = chunker(text, offsets = True, overlap = 0.5)
 ```
 
+## Usage 🕹️
 ### `chunkerify()`
 ```python
 def chunkerify(
