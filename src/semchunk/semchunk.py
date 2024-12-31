@@ -120,11 +120,7 @@ def chunk(
         
         if overlap:
             # Make relative overlaps absolute and floor both relative and absolute overlaps to prevent ever having an overlap >= chunk_size.
-            if overlap < 1:
-                overlap = math.floor(chunk_size * overlap)
-            
-            else:
-                overlap = min(overlap, chunk_size - 1)
+            overlap = math.floor(chunk_size * overlap) if overlap < 1 else min(overlap, chunk_size - 1)
         
             # If the overlap has not been zeroed, compute the effective chunk size as the minimum of the chunk size and the chunk size minus the overlap.
             if overlap:
@@ -387,8 +383,7 @@ def chunkerify(
         def faster_token_counter(text: str) -> int:
             heuristic = chunk_size * 6
             
-            if len(text) > heuristic and original_token_counter(text[:heuristic + max_token_chars]) > chunk_size:
-                return chunk_size + 1
+            if len(text) > heuristic and original_token_counter(text[:heuristic + max_token_chars]) > chunk_size: return chunk_size + 1
             
             return original_token_counter(text)
 
