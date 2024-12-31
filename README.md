@@ -145,7 +145,7 @@ If overlapping chunks have been requested, `semchunk` also:
 1. Merges every `floor(original_chunk_size / reduced_chunk_size)` chunks starting from the first chunk and then jumping by `floor((original_chunk_size - overlap) / reduced_chunk_size)` chunks until the last chunk is reached.
 
 ## Benchmarks 📊
-On a desktop with a Ryzen 9 7900X, 96 GB of DDR5 5600MHz CL40 RAM, Windows 11 and Python 3.12.4, it takes `semchunk` 2.87 seconds to split every sample in [NLTK's Gutenberg Corpus](https://www.nltk.org/howto/corpus.html#plaintext-corpora) into 512-token-long chunks with GPT-4's tokenizer (for context, the Corpus contains 18 texts and 3,001,260 tokens). By comparison, it takes [`semantic-text-splitter`](https://pypi.org/project/semantic-text-splitter/) (with multiprocessing) 25.03 seconds to chunk the same texts into 512-token-long chunks — a difference of 88.53%.
+On a desktop with a Ryzen 9 7900X, 96 GB of DDR5 5600MHz CL40 RAM, Windows 11 and Python 3.12.4, it takes `semchunk` 2.96 seconds to split every sample in [NLTK's Gutenberg Corpus](https://www.nltk.org/howto/corpus.html#plaintext-corpora) into 512-token-long chunks with GPT-4's tokenizer (for context, the Corpus contains 18 texts and 3,001,260 tokens). By comparison, it takes [`semantic-text-splitter`](https://pypi.org/project/semantic-text-splitter/) (with multiprocessing) 23.28 seconds to chunk the same texts into 512-token-long chunks — a difference of 87.28%.
 
 The code used to benchmark `semchunk` and `semantic-text-splitter` is available [here](https://github.com/umarbutler/semchunk/blob/main/tests/bench.py).
 
