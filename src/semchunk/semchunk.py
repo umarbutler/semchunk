@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import math
 import inspect
 
 from bisect import bisect_left
@@ -91,8 +92,8 @@ def chunk(
     token_counter: Callable[[str], int],
     memoize: bool = True,
     offsets: bool = False,
+    overlap: float | int | None = None,
     _recursion_depth: int = 0,
-    _reattach_whitespace_splitters: bool = False,
     _start: int = 0,
 ) -> list[str] | tuple[list[str], list[tuple[int, int]]]:
     """Split a text into semantically meaningful chunks of a specified size as determined by the provided token counter.
@@ -103,99 +104,126 @@ def chunk(
         token_counter (Callable[[str], int]): A callable that takes a string and returns the number of tokens in it.
         memoize (bool, optional): Whether to memoize the token counter. Defaults to `True`.
         offsets (bool, optional): Whether to return the start and end offsets of each chunk. Defaults to `False`.
-    
+        overlap (float | int | None, optional): The proportion of the chunk size, or, if >=1, the number of tokens, by which chunks should overlap. Defaults to `None`, in which case no overlapping occurs.
+        
     Returns:
         list[str] | tuple[list[str], list[tuple[int, int]]]: A list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, and, if `offsets` is `True`, a list of tuples of the form `(start, end)` where `start` is the index of the first character of the chunk in the original text and `end` is the index of the character after the last character of the chunk such that `chunks[i] == text[offsets[i][0]:offsets[i][1]]`."""
     
-    # If this is not a recursive call and memoization is enabled, overwrite the `token_counter` with a memoized version of itself.
-    if not _recursion_depth and memoize:
-        token_counter = _memoized_token_counters.setdefault(token_counter, cache(token_counter))
-
+    # Rename variables for clarity.
+    return_offsets = offsets
+    local_chunk_size = chunk_size
+    
+    # If this is the first call, memoize the token counter if memoization is enabled and reduce the effective chunk size if overlapping chunks.
+    if (is_first_call := not _recursion_depth):
+        if memoize:
+            token_counter = _memoized_token_counters.setdefault(token_counter, cache(token_counter))
+        
+        if overlap:
+            # Make relative overlaps absolute and floor both relative and absolute overlaps to prevent ever having an overlap >= chunk_size.
+            if overlap < 1:
+                overlap = math.floor(chunk_size * overlap)
+            
+            else:
+                overlap = min(overlap, chunk_size - 1)
+        
+            # If the overlap has not been zeroed, compute the effective chunk size as the minimum of the chunk size and the chunk size minus the overlap.
+            if overlap:
+                unoverlapped_chunk_size = chunk_size - overlap
+                local_chunk_size = min(overlap, unoverlapped_chunk_size)
+    
     # Split the text using the most semantically meaningful splitter possible.
     splitter, splitter_is_whitespace, splits = _split_text(text)
-    if _reattach_whitespace_splitters: splitter_is_whitespace = False
 
-    if offsets:
-        offsets_ = []
-        splitter_len = len(splitter)
-        local_split_starts = list(accumulate([0] + [len(split) + splitter_len for split in splits]))
-    
-    else:
-        split_start = 0
+    offsets: list = []
+    splitter_len = len(splitter)
+    split_starts = accumulate([0] + [len(split) + splitter_len for split in splits])
+    split_starts = [start + _start for start in split_starts]
     
     chunks = []
     skips = set()
     """A list of indices of splits to skip because they have already been added to a chunk."""
     
     # Iterate through the splits.
-    for i, split in enumerate(splits):
+    for i, (split, split_start) in enumerate(zip(splits, split_starts)):
         # Skip the split if it has already been added to a chunk.
         if i in skips:
             continue
         
-        # Compute the start offset of the split if necessary.
-        if offsets:
-            split_start = local_split_starts[i] + _start
-        
         # If the split is over the chunk size, recursively chunk it.
-        if token_counter(split) > chunk_size:
-            new_chunks = chunk(text = split, chunk_size = chunk_size, token_counter = token_counter, memoize = memoize, offsets = offsets, _recursion_depth = _recursion_depth + 1, _reattach_whitespace_splitters = _reattach_whitespace_splitters, _start = split_start)
+        if token_counter(split) > local_chunk_size:
+            new_chunks, new_offsets = chunk(text = split, chunk_size = local_chunk_size, token_counter = token_counter, offsets = return_offsets, _recursion_depth = _recursion_depth + 1, _start = split_start)
             
             if not new_chunks:
-                raise ValueError(f"`semchunk` was given a `chunk_size` smaller than the number of tokens in an empty string ({token_counter(''):,}). Try increasing the `chunk_size` to >={token_counter('') + 2:,}.")
-            
-            if offsets:
-                new_chunks, new_offsets = new_chunks
-                offsets_.extend(new_offsets)
+                raise ValueError(f"`semchunk` was given a `chunk_size` smaller than the number of tokens in an empty string ({token_counter(''):,}) (or was given an `overlap` so high that the effective chunk size became smaller than the number of tokens in an empty string). Try increasing the `chunk_size` to >={token_counter('') + 2:,} or decreasing `overlap`.")
             
             chunks.extend(new_chunks)
-            
+            offsets.extend(new_offsets)
+
         # If the split is equal to or under the chunk size, add it and any subsequent splits to a new chunk until the chunk size is reached.
         else:
             # Merge the split with subsequent splits until the chunk size is reached.
-            final_split_in_chunk_i, new_chunk = merge_splits(splits[i:], chunk_size, splitter, token_counter)
+            final_split_in_chunk_i, new_chunk = merge_splits(splits[i:], local_chunk_size, splitter, token_counter)
             
             # Mark any splits included in the new chunk for exclusion from future chunks.
             skips.update(range(i + 1, i + final_split_in_chunk_i))
             
             # Add the chunk.
             chunks.append(new_chunk)
-            
-            # Add the chunk's offsets if necessary.
-            if offsets:
-                split_end = _start + local_split_starts[i + final_split_in_chunk_i] - splitter_len
-                offsets_.append((split_start, split_end))
+
+            # Add the chunk's offsets.
+            split_end = split_starts[i + final_split_in_chunk_i] - splitter_len
+            offsets.append((split_start, split_end))
 
         # If the splitter is not whitespace and the split is not the last split, add the splitter to the end of the latest chunk if doing so would not cause it to exceed the chunk size otherwise add the splitter as a new chunk.
         if not splitter_is_whitespace and not (i == len(splits) - 1 or all(j in skips for j in range(i + 1, len(splits)))):
-            if token_counter(last_chunk_with_splitter := chunks[-1] + splitter) <= chunk_size:
+            if token_counter(last_chunk_with_splitter := chunks[-1] + splitter) <= local_chunk_size:
                 chunks[-1] = last_chunk_with_splitter
-                
-                # Add the splitter's length to the offset for the updated chunk if necessary.
-                if offsets:
-                    start, end = offsets_[-1]
-                    offsets_[-1] = (start, end + splitter_len)
+                start, end = offsets[-1]
+                offsets[-1] = (start, end + splitter_len)
                 
             else:
-                chunks.append(splitter)
+                start = offsets[-1][1] if offsets else split_start
                 
-                # Add the splitter's offsets if necessary.
-                if offsets:
-                    offsets_.append((split_start, split_start + splitter_len))
-    
-    # If this is not a recursive call, remove any empty chunks.
-    if offsets:
-        if not _recursion_depth:
-            chunks, offsets_ = zip(*[(chunk, offset) for chunk, offset in zip(chunks, offsets_) if chunk])
-            
-            return list(chunks), list(offsets_)
+                chunks.append(splitter)
+                offsets.append((start, start + splitter_len))
         
-        return chunks, offsets_
+    # If this is the first call, remove any empty chunks as well as chunks comprised entirely of whitespace and then overlap the chunks if desired and finally return the chunks, optionally with their offsets.
+    if is_first_call:
+        # Remove empty chunks.
+        chunks, offsets = zip(*[(chunk, offset) for chunk, offset in zip(chunks, offsets) if chunk and not chunk.isspace()])
+        chunks, offsets = list(chunks), list(offsets)
+        
+        # Overlap chunks if desired.
+        if overlap:
+            # Rename variables for clarity.
+            subchunk_size = local_chunk_size
+            subchunks = chunks
+            suboffsets = offsets
+            num_subchunks = len(subchunks)
+            
+            # Merge the subchunks into overlapping chunks.
+            subchunks_per_chunk = math.floor(chunk_size / subchunk_size) # NOTE `math.ceil` would cause the chunk size to be exceeded.
+            subchunk_stride = math.floor(unoverlapped_chunk_size / subchunk_size) # NOTE `math.ceil` would cause overlaps to be missed.
+                        
+            offsets = [
+                (
+                    suboffsets[(start := i * subchunk_stride)][0],
+                    suboffsets[min(start + subchunks_per_chunk, num_subchunks) - 1][1]
+                )
+                
+                for i in range(max(1, math.ceil((num_subchunks - subchunks_per_chunk) / subchunk_stride) + 1))
+            ]
+            
+            chunks = [text[start:end] for start, end in offsets]
+
+        # Return offsets if desired.
+        if return_offsets:
+            return chunks, offsets
+        
+        return chunks
     
-    if not _recursion_depth:
-        chunks = list(filter(None, chunks))
-    
-    return chunks
+    # Always return chunks and offsets if this is a recursive call.
+    return chunks, offsets
 
 
 class Chunker:
@@ -203,7 +231,11 @@ class Chunker:
         self.chunk_size = chunk_size
         self.token_counter = token_counter
     
-    def _make_chunk_function(self, offsets: bool) -> Callable[[str], list[str] | tuple[list[str], list[tuple[int, int]]]]:
+    def _make_chunk_function(
+        self,
+        offsets: bool,
+        overlap: float | int | None,
+    ) -> Callable[[str], list[str] | tuple[list[str], list[tuple[int, int]]]]:
         """Construct a function that chunks a text and returns the chunks along with their offsets if necessary."""
         
         def _chunk(text: str) -> list[str] | tuple[list[str], list[tuple[int, int]]]:
@@ -213,6 +245,7 @@ class Chunker:
                 token_counter = self.token_counter,
                 memoize = False,
                 offsets = offsets,
+                overlap = overlap,
             )
         
         return _chunk
@@ -223,6 +256,7 @@ class Chunker:
         processes: int = 1,
         progress: bool = False,
         offsets: bool = False,
+        overlap: int | float | None = None,
     ) -> list[str] | tuple[list[str], list[tuple[int, int]]] | list[list[str]] | tuple[list[list[str]], list[list[tuple[int, int]]]]:
         """Split text or texts into semantically meaningful chunks of a specified size as determined by the provided tokenizer or token counter.
         
@@ -230,14 +264,15 @@ class Chunker:
             text_or_texts (str | Sequence[str]): The text or texts to be chunked.
             processes (int, optional): The number of processes to use when chunking multiple texts. Defaults to `1` in which case chunking will occur in the main process.
             progress (bool, optional): Whether to display a progress bar when chunking multiple texts. Defaults to `False`.
-            output_offsets (bool, optional): Whether to return the start and end offsets of each chunk. Defaults to `False`.
-        
+            offsets (bool, optional): Whether to return the start and end offsets of each chunk. Defaults to `False`.
+            overlap (float | int | None, optional): The proportion of the chunk size, or, if >=1, the number of tokens, by which chunks should overlap. Defaults to `None`, in which case no overlapping occurs.
+
         Returns:
             list[str] | tuple[list[str], list[tuple[int, int]]] | list[list[str]] | tuple[list[list[str]], list[list[tuple[int, int]]]]: If a single text has been provided, a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, and, if `offsets` is `True`, a list of tuples of the form `(start, end)` where `start` is the index of the first character of the chunk in the original text and `end` is the index of the character succeeding the last character of the chunk such that `chunks[i] == text[offsets[i][0]:offsets[i][1]]`.
             
             If multiple texts have been provided, a list of lists of chunks, with each inner list corresponding to the chunks of one of the provided input texts, and, if `offsets` is `True`, a list of lists of tuples of the chunks' offsets to the original texts, as described above."""
         
-        chunk_function = self._make_chunk_function(offsets)
+        chunk_function = self._make_chunk_function(offsets = offsets, overlap = overlap)
             
         if isinstance(text_or_texts, str):
             return chunk_function(text_or_texts)
@@ -248,8 +283,9 @@ class Chunker:
         if processes == 1:
             chunks_and_offsets = [chunk_function(text) for text in text_or_texts]
         
-        with mpire.WorkerPool(processes, use_dill = True) as pool:
-            chunks_and_offsets = pool.map(chunk_function, text_or_texts, progress_bar = progress)
+        else:
+            with mpire.WorkerPool(processes, use_dill = True) as pool:
+                chunks_and_offsets = pool.map(chunk_function, text_or_texts, progress_bar = progress)
         
         if offsets:
             chunks, offsets_ = zip(*chunks_and_offsets)
@@ -274,13 +310,15 @@ def chunkerify(
         memoize (bool, optional): Whether to memoize the token counter. Defaults to `True`.
     
     Returns:
-        Callable[[str | Sequence[str], bool, bool, bool], list[str] | tuple[list[str], list[tuple[int, int]]] | list[list[str]] | tuple[list[list[str]], list[list[tuple[int, int]]]]]: A chunker that takes either a single text or a sequence of texts and returns, depending on whether multiple texts have been provided, a list or list of lists of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, and, if the optional `offsets` argument to the chunker is `True`, a list or lists of tuples of the form `(start, end)` where `start` is the index of the first character of a chunk in a text and `end` is the index of the character succeeding the last character of the chunk such that `chunks[i] == text[offsets[i][0]:offsets[i][1]]`. 
+        Callable[[str | Sequence[str], bool, bool, bool, int | float | None], list[str] | tuple[list[str], list[tuple[int, int]]] | list[list[str]] | tuple[list[list[str]], list[list[tuple[int, int]]]]]: A chunker that takes either a single text or a sequence of texts and returns, depending on whether multiple texts have been provided, a list or list of lists of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, and, if the optional `offsets` argument to the chunker is `True`, a list or lists of tuples of the form `(start, end)` where `start` is the index of the first character of a chunk in a text and `end` is the index of the character succeeding the last character of the chunk such that `chunks[i] == text[offsets[i][0]:offsets[i][1]]`.
         
         The resulting chunker can be passed a `processes` argument that specifies the number of processes to be used when chunking multiple texts.
         
         It is also possible to pass a `progress` argument which, if set to `True` and multiple texts are passed, will display a progress bar.
         
-        As described above, the `offsets` argument, if set to `True`, will cause the chunker to return the start and end offsets of each chunk."""
+        As described above, the `offsets` argument, if set to `True`, will cause the chunker to return the start and end offsets of each chunk.
+        
+        The chunker accepts an `overlap` argument that specifies the proportion of the chunk size, or, if >=1, the number of tokens, by which chunks should overlap. It defaults to `None`, in which case no overlapping occurs."""
     
     # If the provided tokenizer is a string, try to load it with either `tiktoken` or `transformers` or raise an error if neither is available.
     if isinstance(tokenizer_or_token_counter, str):
