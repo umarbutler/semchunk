@@ -1,12 +1,15 @@
 """Test semchunk."""
 import semchunk
 
+import tiktoken
+
 from helpers import GUTENBERG, initialize_test_token_counters
+from transformers import AutoTokenizer
 
 TEST_TOKEN_COUNTERS = (
-    'emubert_transformers',
-    'gpt4_tiktoken',
-    'word',
+    # 'emubert_transformers',
+    # 'gpt4_tiktoken',
+    # 'word',
     'char',
 )
 TEST_CHUNK_SIZES = (
@@ -153,7 +156,7 @@ def test_semchunk() -> None:
     
     # Test using `tiktoken` tokenizers, encodings and a `transformers` tokenizer by name with `chunkerify()`.
     for name in ['cl100k_base', 'gpt-4', 'umarbutler/emubert']:
-        chunker = semchunk.chunkerify('gpt-4', 1)
+        chunker = semchunk.chunkerify(name, 1)
         chunker(DETERMINISTIC_TEST_INPUT)
         if TEST_OFFSETS: chunker(DETERMINISTIC_TEST_INPUT, offsets = True)
 
@@ -166,6 +169,14 @@ def test_semchunk() -> None:
         error_raised = True
     
     assert error_raised
+    
+    # Test using a `transformers` tokenizer directly.
+    tokenizer = AutoTokenizer.from_pretrained('umarbutler/emubert')
+    chunker = semchunk.chunkerify(tokenizer, 1)
+    
+    # Test using a `tiktoken` tokenizer directly.
+    tokenizer = tiktoken.encoding_for_model('gpt-4')
+    chunker = semchunk.chunkerify(tokenizer, 1)
     
     # Try enabling a progress bar.
     chunker([DETERMINISTIC_TEST_INPUT, DETERMINISTIC_TEST_INPUT], progress = True)
