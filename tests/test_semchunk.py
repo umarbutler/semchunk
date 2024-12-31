@@ -118,7 +118,7 @@ def test_semchunk() -> None:
         assert chunks == DETERMINISTIC_TEST_OUTPUT_CHUNKS[name]
         
         if TEST_OFFSETS:
-            chunks, offsets = semchunk.chunk(DETERMINISTIC_TEST_INPUT, DETERMINISTIC_TEST_CHUNK_SIZE, token_counter, return_offsets = True, memoize = True)
+            chunks, offsets = semchunk.chunk(DETERMINISTIC_TEST_INPUT, DETERMINISTIC_TEST_CHUNK_SIZE, token_counter, offsets = True, memoize = True)
             assert chunks == DETERMINISTIC_TEST_OUTPUT_CHUNKS[name]
             assert offsets == DETERMINISTIC_TEST_OUTPUT_OFFSETS[name]
         
