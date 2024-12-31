@@ -5,7 +5,6 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 ### Added
 - Added an `offsets` argument to `chunk()` and `Chunker.__call__()` that specifies whether to return the start and end offsets of each chunk ([#9](https://github.com/umarbutler/semchunk/issues/9)). The argument defaults to `False`.
 - Added an `overlap` argument to `chunk()` and `Chunker.__call__()` that specifies the proportion of the chunk size, or, if >=1, the number of tokens, by which chunks should overlap ([#1](https://github.com/umarbutler/semchunk/issues/1)). The argument defaults to `None`, in which case no overlapping occurs.
-- Began raising a `ValueError` where the `chunk_size` is smaller than the number of tokens in an empty string (i.e, where the token counter adds special tokens to every input).
 - Added an undocumented, private `_make_chunk_function()` method to the `Chunker` class that constructs chunking functions with call-level arguments passed.
 - Added more unit tests for new features as well as for multiple token counters and for ensuring there are no chunks comprised entirely of whitespace characters.
 

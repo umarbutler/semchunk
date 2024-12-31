@@ -153,9 +153,6 @@ def chunk(
         if token_counter(split) > local_chunk_size:
             new_chunks, new_offsets = chunk(text = split, chunk_size = local_chunk_size, token_counter = token_counter, offsets = return_offsets, _recursion_depth = _recursion_depth + 1, _start = split_start)
             
-            if not new_chunks:
-                raise ValueError(f"`semchunk` was given a `chunk_size` smaller than the number of tokens in an empty string ({token_counter(''):,}) (or was given an `overlap` so high that the effective chunk size became smaller than the number of tokens in an empty string). Try increasing the `chunk_size` to >={token_counter('') + 2:,} or decreasing `overlap`.")
-            
             chunks.extend(new_chunks)
             offsets.extend(new_offsets)
 
