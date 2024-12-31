@@ -13,6 +13,7 @@
 !.github/
 !.github/**/*
 !.gitignore
+!.isort.cfg
 
 # Finally, exclude anything in the above inclusions that we don't want.
 *.pyc
@@ -21,5 +22,3 @@
 *.parquet
 __pycache__/
 .pytest_cache/
-tests/profiler.py
-tests/test_bench.py
