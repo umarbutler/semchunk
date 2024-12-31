@@ -1,4 +1,6 @@
 """Test semchunk."""
+import math
+
 import semchunk
 
 import tiktoken
@@ -84,7 +86,7 @@ def test_semchunk() -> None:
         # Test overlapping.
         chunker = semchunk.chunkerify(token_counter, DETERMINISTIC_TEST_CHUNK_SIZE)
         low_overlap_chunks = chunker(DETERMINISTIC_TEST_INPUT, overlap = 0.1)
-        high_overlap_chunks = chunker(DETERMINISTIC_TEST_INPUT, overlap = 0.9)
+        high_overlap_chunks = chunker(DETERMINISTIC_TEST_INPUT, overlap = math.ceil(DETERMINISTIC_TEST_CHUNK_SIZE * 0.9))
         
         if name == 'word':
             assert len(high_overlap_chunks) == len(low_overlap_chunks)
@@ -94,7 +96,7 @@ def test_semchunk() -> None:
         
         if TEST_OFFSETS:
             low_overlap_chunks, low_overlap_offsets = chunker(DETERMINISTIC_TEST_INPUT, overlap = 0.1, offsets = True)
-            high_overlap_chunks, high_overlap_offsets = chunker(DETERMINISTIC_TEST_INPUT, overlap = 0.9, offsets = True)
+            high_overlap_chunks, high_overlap_offsets = chunker(DETERMINISTIC_TEST_INPUT, overlap = math.ceil(DETERMINISTIC_TEST_CHUNK_SIZE * 0.9), offsets = True)
             
             if name == 'word':
                 assert len(high_overlap_chunks) == len(low_overlap_chunks)
