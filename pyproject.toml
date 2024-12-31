@@ -55,4 +55,4 @@ Issues = "https://github.com/umarbutler/semchunk/issues"
 Source = "https://github.com/umarbutler/semchunk"
 
 [tool.hatch.build.targets.sdist]
-only-include = ['src/semchunk/__init__.py', 'src/semchunk/py.typed', 'src/semchunk/semchunk.py', 'pyproject.toml', 'README.md', 'LICENCE', 'CHANGELOG.md', 'tests/bench.py', 'tests/test_semchunk.py', '.github/workflows/ci.yml']
+only-include = ['src/semchunk/__init__.py', 'src/semchunk/py.typed', 'src/semchunk/semchunk.py', 'pyproject.toml', 'README.md', 'LICENCE', 'CHANGELOG.md', 'tests/bench.py', 'tests/test_semchunk.py', '.github/workflows/ci.yml', 'tests/helpers.py']
