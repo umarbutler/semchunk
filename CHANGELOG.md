@@ -4,6 +4,7 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 ## [3.0.0] - 2024-12-31
 ### Changed
 - Began removing chunks comprised entirely of whitespace characters from the output of `chunk()`.
+- Updated `semchunk`'s description from 'A fast and lightweight Python library for splitting text into semantically meaningful chunks.' and 'A fast, lightweight and easy-to-use Python library for splitting text into semantically meaningful chunks.'.
 
 ### Added
 - Added an `offsets` argument to `chunk()` and `Chunker.__call__()` that specifies whether to return the start and end offsets of each chunk ([#9](https://github.com/umarbutler/semchunk/issues/9)). The argument defaults to `False`.
