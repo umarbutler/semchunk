@@ -127,7 +127,7 @@ This function returns a list of chunks up to `chunk_size`-tokens-long, with any 
 1. Recursively splits the resulting chunks until a set of chunks equal to or less than the specified chunk size is produced;
 1. Merges any chunks that are under the chunk size back together until the chunk size is reached;
 1. Reattaches any non-whitespace splitters back to the ends of chunks barring the final chunk if doing so does not bring chunks over the chunk size, otherwise adds non-whitespace splitters as their own chunks; and
-1. Since version XXXX, excludes chunks consisting entirely of whitespace characters.
+1. Since version 3.0.0, excludes chunks consisting entirely of whitespace characters.
 
 To ensure that chunks are as semantically meaningful as possible, `semchunk` uses the following splitters, in order of precedence:
 1. The largest sequence of newlines (`\n`) and/or carriage returns (`\r`);
