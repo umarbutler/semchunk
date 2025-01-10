@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "semchunk"
-version = "3.0.0"
+version = "3.0.1"
 authors = [
   {name="Umar Butler", email="umar@umar.au"},
 ]

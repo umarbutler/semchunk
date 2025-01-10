@@ -185,6 +185,9 @@ def test_semchunk() -> None:
     # Try enabling a progress bar.
     chunker([DETERMINISTIC_TEST_INPUT, DETERMINISTIC_TEST_INPUT], progress = True)
     chunker([DETERMINISTIC_TEST_INPUT, DETERMINISTIC_TEST_INPUT], offsets = True, progress = True)
+    
+    # Test chunking nothing to ensure no errors are raised.
+    semchunk.chunk('', 512, lambda *args: 0)
 
 if __name__ == '__main__':
     test_semchunk()

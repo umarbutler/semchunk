@@ -1,6 +1,10 @@
 ## Changelog 🔄
 All notable changes to `semchunk` will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - 2024-01-10
+### Fixed
+- Fixed a bug where attempting to chunk an empty text would raise a `ValueError`.
+
 ## [3.0.0] - 2024-12-31
 ### Added
 - Added an `offsets` argument to `chunk()` and `Chunker.__call__()` that specifies whether to return the start and end offsets of each chunk ([#9](https://github.com/umarbutler/semchunk/issues/9)). The argument defaults to `False`.
@@ -105,6 +109,7 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 ### Added
 - Added the `chunk()` function, which splits text into semantically meaningful chunks of a specified size as determined by a provided token counter.
 
+[3.0.1]: https://github.com/umarbutler/semchunk/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/umarbutler/semchunk/compare/v2.2.2...v3.0.0
 [2.2.2]: https://github.com/umarbutler/semchunk/compare/v2.2.1...v2.2.2
 [2.2.1]: https://github.com/umarbutler/semchunk/compare/v2.2.0...v2.2.1
