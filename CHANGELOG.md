@@ -1,6 +1,10 @@
 ## Changelog 🔄
 All notable changes to `semchunk` will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Added [Isaacus](https://isaacus.com/) to the license.
+
 ## [3.0.1] - 2024-01-10
 ### Fixed
 - Fixed a bug where attempting to chunk an empty text would raise a `ValueError`.
