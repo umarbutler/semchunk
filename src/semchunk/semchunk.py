@@ -4,7 +4,6 @@ import re
 import math
 import inspect
 
-from bisect import bisect_left
 from typing import Callable, Sequence, TYPE_CHECKING
 from functools import cache
 from itertools import accumulate
@@ -62,6 +61,20 @@ def _split_text(text: str) -> tuple[str, bool, list[str]]:
     # Return the splitter and the split text.
     return splitter, splitter_is_whitespace, text.split(splitter)
 
+def bisect_left(a: list, x: int, hi: int) -> int:
+    lo = 0
+    
+    while lo < hi:
+        mid = (lo + hi) // 2
+        
+        if a[mid] < x:
+            lo = mid + 1
+        
+        else:
+            hi = mid
+    
+    return lo
+
 def merge_splits(splits: list[str], chunk_size: int, splitter: str, token_counter: Callable) -> tuple[int, str]:
     """Merge splits until a chunk size is reached, returning the index of the last split included in the merged chunk along with the merged chunk itself."""
     
@@ -72,7 +85,7 @@ def merge_splits(splits: list[str], chunk_size: int, splitter: str, token_counte
     cumulative_lengths.append(cumulative_lengths[-1])
 
     while low < high:
-        i = bisect_left(cumulative_lengths[low : high + 1], chunk_size * average)
+        i = bisect_left(cumulative_lengths[low : high + 1], chunk_size * average, hi = (high - low) + 1)
         midpoint = min(i + low, high - 1)
 
         tokens = token_counter(splitter.join(splits[:midpoint]))
