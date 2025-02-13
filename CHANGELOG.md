@@ -1,6 +1,10 @@
 ## Changelog 🔄
 All notable changes to `semchunk` will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.4] - 2025-02-14
+### Fixed
+- Fixed bug where attempting to chunk only whitespace characters would raise `ValueError: not enough values to unpack (expected 2, got 0)` ([ScrapeGraphAI/Scrapegraph-ai#893](https://github.com/ScrapeGraphAI/Scrapegraph-ai/issues/893)).
+
 ## [3.0.3] - 2025-02-13
 ### Fixed
 - Fixed `isaacus/emubert` mistakenly being set to `isaacus-dev/emubert` in the README and tests.
@@ -121,6 +125,7 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 ### Added
 - Added the `chunk()` function, which splits text into semantically meaningful chunks of a specified size as determined by a provided token counter.
 
+[3.0.4]: https://github.com/isaacus-dev/semchunk/compare/v3.0.3...v3.0.4
 [3.0.3]: https://github.com/isaacus-dev/semchunk/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/isaacus-dev/semchunk/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/isaacus-dev/semchunk/compare/v3.0.0...v3.0.1

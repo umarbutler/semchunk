@@ -188,6 +188,9 @@ def test_semchunk() -> None:
     
     # Test chunking nothing to ensure no errors are raised.
     semchunk.chunk('', 512, lambda *args: 0)
+    
+    # Test chunking whitespace to ensure no errors are raised.
+    semchunk.chunk('\n\n', 512, lambda *args: 0)
 
 if __name__ == '__main__':
     test_semchunk()
