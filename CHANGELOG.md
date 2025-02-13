@@ -15,8 +15,8 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 
 ## [3.0.0] - 2024-12-31
 ### Added
-- Added an `offsets` argument to `chunk()` and `Chunker.__call__()` that specifies whether to return the start and end offsets of each chunk ([#9](https://github.com/umarbutler/semchunk/issues/9)). The argument defaults to `False`.
-- Added an `overlap` argument to `chunk()` and `Chunker.__call__()` that specifies the proportion of the chunk size, or, if >=1, the number of tokens, by which chunks should overlap ([#1](https://github.com/umarbutler/semchunk/issues/1)). The argument defaults to `None`, in which case no overlapping occurs.
+- Added an `offsets` argument to `chunk()` and `Chunker.__call__()` that specifies whether to return the start and end offsets of each chunk ([#9](https://github.com/isaacus-dev/semchunk/issues/9)). The argument defaults to `False`.
+- Added an `overlap` argument to `chunk()` and `Chunker.__call__()` that specifies the proportion of the chunk size, or, if >=1, the number of tokens, by which chunks should overlap ([#1](https://github.com/isaacus-dev/semchunk/issues/1)). The argument defaults to `None`, in which case no overlapping occurs.
 - Added an undocumented, private `_make_chunk_function()` method to the `Chunker` class that constructs chunking functions with call-level arguments passed.
 - Added more unit tests for new features as well as for multiple token counters and for ensuring there are no chunks comprised entirely of whitespace characters.
 
@@ -37,11 +37,11 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 
 ## [2.2.1] - 2024-12-17
 ### Changed
-- Started benchmarking [`semantic-text-splitter`](https://pypi.org/project/semantic-text-splitter/) in parallel to ensure a fair comparison, courtesy of [@benbrandt](https://github.com/benbrandt) ([#17](https://github.com/umarbutler/semchunk/pull/12)).
+- Started benchmarking [`semantic-text-splitter`](https://pypi.org/project/semantic-text-splitter/) in parallel to ensure a fair comparison, courtesy of [@benbrandt](https://github.com/benbrandt) ([#17](https://github.com/isaacus-dev/semchunk/pull/12)).
 
 ## [2.2.0] - 2024-07-12
 ### Changed
-- Switched from having `chunkerify()` output a function to having it return an instance of the new `Chunker()` class which should not alter functionality in any way but will allow for the preservation of type hints, fixing [#7](https://github.com/umarbutler/semchunk/pull/7).
+- Switched from having `chunkerify()` output a function to having it return an instance of the new `Chunker()` class which should not alter functionality in any way but will allow for the preservation of type hints, fixing [#7](https://github.com/isaacus-dev/semchunk/pull/7).
 
 ## [2.1.0] - 2024-06-20
 ### Fixed
@@ -64,7 +64,7 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 
 ## [0.3.2] - 2024-06-01
 ### Fixed
-- Fixed a bug where a `DivisionByZeroError` would be raised where a token counter returned zero tokens when called from `merge_splits()`, courtesy of [@jcobol](https://github.com/jcobol) ([#5](https://github.com/umarbutler/semchunk/pull/5)) ([7fd64eb](https://github.com/umarbutler/semchunk/pull/5/commits/7fd64eb8cf51f45702c59f43795be9a00c7d0d17)), fixing [#4](https://github.com/umarbutler/semchunk/issues/4).
+- Fixed a bug where a `DivisionByZeroError` would be raised where a token counter returned zero tokens when called from `merge_splits()`, courtesy of [@jcobol](https://github.com/jcobol) ([#5](https://github.com/isaacus-dev/semchunk/pull/5)) ([7fd64eb](https://github.com/isaacus-dev/semchunk/pull/5/commits/7fd64eb8cf51f45702c59f43795be9a00c7d0d17)), fixing [#4](https://github.com/isaacus-dev/semchunk/issues/4).
 
 ## [0.3.1] - 2024-05-18
 ### Fixed
@@ -72,11 +72,11 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 
 ## [0.3.0] - 2024-05-18
 ### Added
-- Introduced the `chunkerify()` function, which constructs a chunker from a tokenizer or token counter that can be reused and can also chunk multiple texts in a single call. The resulting chunker speeds up chunking by 40.4% thanks, in large part, to a token counter that avoid having to count the number of tokens in a text when the number of characters in the text exceed a certain threshold, courtesy of [@R0bk](https://github.com/R0bk) ([#3](https://github.com/umarbutler/semchunk/pull/3)) ([337a186](https://github.com/umarbutler/semchunk/pull/3/commits/337a18615f991076b076262288b0408cb162b48c)).
+- Introduced the `chunkerify()` function, which constructs a chunker from a tokenizer or token counter that can be reused and can also chunk multiple texts in a single call. The resulting chunker speeds up chunking by 40.4% thanks, in large part, to a token counter that avoid having to count the number of tokens in a text when the number of characters in the text exceed a certain threshold, courtesy of [@R0bk](https://github.com/R0bk) ([#3](https://github.com/isaacus-dev/semchunk/pull/3)) ([337a186](https://github.com/isaacus-dev/semchunk/pull/3/commits/337a18615f991076b076262288b0408cb162b48c)).
 
 ## [0.2.4] - 2024-05-13
 ### Changed
-- Improved chunking performance with larger chunk sizes by switching from linear to binary search for the identification of optimal chunk boundaries, courtesy of [@R0bk](https://github.com/R0bk) ([#3](https://github.com/umarbutler/semchunk/pull/3)) ([337a186](https://github.com/umarbutler/semchunk/pull/3/commits/337a18615f991076b076262288b0408cb162b48c)).
+- Improved chunking performance with larger chunk sizes by switching from linear to binary search for the identification of optimal chunk boundaries, courtesy of [@R0bk](https://github.com/R0bk) ([#3](https://github.com/isaacus-dev/semchunk/pull/3)) ([337a186](https://github.com/isaacus-dev/semchunk/pull/3/commits/337a18615f991076b076262288b0408cb162b48c)).
 
 ## [0.2.3] - 2024-03-11
 ### Fixed
@@ -117,24 +117,24 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 ### Added
 - Added the `chunk()` function, which splits text into semantically meaningful chunks of a specified size as determined by a provided token counter.
 
-[3.0.2]: https://github.com/umarbutler/semchunk/compare/v3.0.1...v3.0.2
-[3.0.1]: https://github.com/umarbutler/semchunk/compare/v3.0.0...v3.0.1
-[3.0.0]: https://github.com/umarbutler/semchunk/compare/v2.2.2...v3.0.0
-[2.2.2]: https://github.com/umarbutler/semchunk/compare/v2.2.1...v2.2.2
-[2.2.1]: https://github.com/umarbutler/semchunk/compare/v2.2.0...v2.2.1
-[2.2.0]: https://github.com/umarbutler/semchunk/compare/v2.1.0...v2.2.0
-[2.1.0]: https://github.com/umarbutler/semchunk/compare/v2.0.0...v2.1.0
-[2.0.0]: https://github.com/umarbutler/semchunk/compare/v1.0.1...v2.0.0
-[1.0.1]: https://github.com/umarbutler/semchunk/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/umarbutler/semchunk/compare/v0.3.2...v1.0.0
-[0.3.2]: https://github.com/umarbutler/semchunk/compare/v0.3.1...v0.3.2
-[0.3.1]: https://github.com/umarbutler/semchunk/compare/v0.3.0...v0.3.1
-[0.3.0]: https://github.com/umarbutler/semchunk/compare/v0.2.4...v0.3.0
-[0.2.4]: https://github.com/umarbutler/semchunk/compare/v0.2.3...v0.2.4
-[0.2.3]: https://github.com/umarbutler/semchunk/compare/v0.2.2...v0.2.3
-[0.2.2]: https://github.com/umarbutler/semchunk/compare/v0.2.1...v0.2.2
-[0.2.1]: https://github.com/umarbutler/semchunk/compare/v0.2.0...v0.2.1
-[0.2.0]: https://github.com/umarbutler/semchunk/compare/v0.1.2...v0.2.0
-[0.1.2]: https://github.com/umarbutler/semchunk/compare/v0.1.1...v0.1.2
-[0.1.1]: https://github.com/umarbutler/semchunk/compare/v0.1.0...v0.1.1
-[0.1.0]: https://github.com/umarbutler/semchunk/releases/tag/v0.1.0
+[3.0.2]: https://github.com/isaacus-dev/semchunk/compare/v3.0.1...v3.0.2
+[3.0.1]: https://github.com/isaacus-dev/semchunk/compare/v3.0.0...v3.0.1
+[3.0.0]: https://github.com/isaacus-dev/semchunk/compare/v2.2.2...v3.0.0
+[2.2.2]: https://github.com/isaacus-dev/semchunk/compare/v2.2.1...v2.2.2
+[2.2.1]: https://github.com/isaacus-dev/semchunk/compare/v2.2.0...v2.2.1
+[2.2.0]: https://github.com/isaacus-dev/semchunk/compare/v2.1.0...v2.2.0
+[2.1.0]: https://github.com/isaacus-dev/semchunk/compare/v2.0.0...v2.1.0
+[2.0.0]: https://github.com/isaacus-dev/semchunk/compare/v1.0.1...v2.0.0
+[1.0.1]: https://github.com/isaacus-dev/semchunk/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/isaacus-dev/semchunk/compare/v0.3.2...v1.0.0
+[0.3.2]: https://github.com/isaacus-dev/semchunk/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/isaacus-dev/semchunk/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/isaacus-dev/semchunk/compare/v0.2.4...v0.3.0
+[0.2.4]: https://github.com/isaacus-dev/semchunk/compare/v0.2.3...v0.2.4
+[0.2.3]: https://github.com/isaacus-dev/semchunk/compare/v0.2.2...v0.2.3
+[0.2.2]: https://github.com/isaacus-dev/semchunk/compare/v0.2.1...v0.2.2
+[0.2.1]: https://github.com/isaacus-dev/semchunk/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/isaacus-dev/semchunk/compare/v0.1.2...v0.2.0
+[0.1.2]: https://github.com/isaacus-dev/semchunk/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/isaacus-dev/semchunk/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/isaacus-dev/semchunk/releases/tag/v0.1.0
