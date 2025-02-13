@@ -6,7 +6,8 @@ build-backend = "hatchling.build"
 name = "semchunk"
 version = "3.0.1"
 authors = [
-  {name="Umar Butler", email="umar@umar.au"},
+    {name="Isaacus", email="support@isaacus.com"},
+    {name="Umar Butler", email="umar@umar.au"},
 ]
 description = "A fast, lightweight and easy-to-use Python library for splitting text into semantically meaningful chunks."
 readme = "README.md"
