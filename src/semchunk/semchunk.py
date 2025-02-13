@@ -75,13 +75,13 @@ def bisect_left(a: list, x: int, hi: int) -> int:
     
     return lo
 
-def merge_splits(splits: list[str], chunk_size: int, splitter: str, token_counter: Callable) -> tuple[int, str]:
+def merge_splits(splits: list[str], lens: list[int], chunk_size: int, splitter: str, token_counter: Callable) -> tuple[int, str]:
     """Merge splits until a chunk size is reached, returning the index of the last split included in the merged chunk along with the merged chunk itself."""
     
     average = 0.2
     low = 0
     high = len(splits) + 1
-    cumulative_lengths = list(accumulate([len(split) for split in splits], initial=0))
+    cumulative_lengths = list(accumulate(lens, initial=0))
     cumulative_lengths.append(cumulative_lengths[-1])
 
     while low < high:
@@ -145,7 +145,8 @@ def chunk(
 
     offsets: list = []
     splitter_len = len(splitter)
-    split_starts = accumulate([0] + [len(split) + splitter_len for split in splits])
+    split_lens = [len(split) for split in splits]
+    split_starts = accumulate([0] + [split_len + splitter_len for split_len in split_lens])
     split_starts = [start + _start for start in split_starts]
     
     chunks = []
@@ -168,7 +169,7 @@ def chunk(
         # If the split is equal to or under the chunk size, add it and any subsequent splits to a new chunk until the chunk size is reached.
         else:
             # Merge the split with subsequent splits until the chunk size is reached.
-            final_split_in_chunk_i, new_chunk = merge_splits(splits[i:], local_chunk_size, splitter, token_counter)
+            final_split_in_chunk_i, new_chunk = merge_splits(splits[i:], split_lens[i:], local_chunk_size, splitter, token_counter)
             
             # Mark any splits included in the new chunk for exclusion from future chunks.
             skips.update(range(i + 1, i + final_split_in_chunk_i))
