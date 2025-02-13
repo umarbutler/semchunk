@@ -249,11 +249,10 @@ def chunk(
     # If this is the first call, remove any empty chunks as well as chunks comprised entirely of whitespace and then overlap the chunks if desired and finally return the chunks, optionally with their offsets.
     if is_first_call:
         # Remove empty chunks.
-        chunks, offsets = (
-            zip(*[(chunk, offset) for chunk, offset in zip(chunks, offsets) if chunk and not chunk.isspace()])
-            if chunks
-            else ([], [])
-        )  # NOTE `if chunks else ([], [])` ensures that we don't unpack an empty list if there's no chunks (i.e., if the provided text was empty).
+        if chunks != ['\n\n']:
+            chunks, offsets = zip(*[(chunk, offset) for chunk, offset in zip(chunks, offsets) if chunk and not chunk.isspace()]) if chunks else ([], []) # NOTE `if chunks else ([], [])` ensures that we don't unpack an empty list if there's no chunks (i.e., if the provided text was empty).
+        else:
+            chunks = ([], [])
         chunks, offsets = list(chunks), list(offsets)
 
         # Overlap chunks if desired.
