@@ -86,46 +86,51 @@ def _split_text(text: str) -> tuple[str, bool, list[str]]:
     return splitter, splitter_is_whitespace, text.split(splitter)
 
 
-def bisect_left(a: list, x: int, hi: int) -> int:
-    lo = 0
+def bisect_left(sorted: list, target: int, low: int, high: int) -> int:
+    while low < high:
+        mid = (low + high) // 2
 
-    while lo < hi:
-        mid = (lo + hi) // 2
-
-        if a[mid] < x:
-            lo = mid + 1
+        if sorted[mid] < target:
+            low = mid + 1
 
         else:
-            hi = mid
+            high = mid
 
-    return lo
+    return low
 
 
 def merge_splits(
-    splits: list[str], lens: list[int], chunk_size: int, splitter: str, token_counter: Callable
+    splits: list[str], cum_lens: list[int], chunk_size: int, splitter: str, token_counter: Callable, start: int
 ) -> tuple[int, str]:
     """Merge splits until a chunk size is reached, returning the index of the last split included in the merged chunk along with the merged chunk itself."""
 
     average = 0.2
-    low = 0
+    low = start
     high = len(splits) + 1
-    cumulative_lengths = list(accumulate(lens, initial=0))
-    cumulative_lengths.append(cumulative_lengths[-1])
+
+    offset = cum_lens[start]
+    target = offset + (chunk_size * average)
 
     while low < high:
-        i = bisect_left(cumulative_lengths[low : high + 1], chunk_size * average, hi=(high - low) + 1)
-        midpoint = min(i + low, high - 1)
+        i = bisect_left(cum_lens, target, low=low, high=high)
+        midpoint = min(i, high - 1)
 
-        tokens = token_counter(splitter.join(splits[:midpoint]))
+        tokens = token_counter(splitter.join(splits[start:midpoint]))
 
-        average = cumulative_lengths[midpoint] / tokens if cumulative_lengths[midpoint] and tokens > 0 else average
+        local_cum = cum_lens[midpoint] - offset
+
+        if local_cum and tokens > 0:
+            average = local_cum / tokens
+            target = offset + (chunk_size * average)
 
         if tokens > chunk_size:
             high = midpoint
+
         else:
             low = midpoint + 1
 
-    return low - 1, splitter.join(splits[: low - 1])
+    end = low - 1
+    return end, splitter.join(splits[start:end])
 
 
 def chunk(
@@ -175,6 +180,7 @@ def chunk(
     offsets: list = []
     splitter_len = len(splitter)
     split_lens = [len(split) for split in splits]
+    cum_lens = list(accumulate(split_lens, initial=0))
     split_starts = accumulate([0] + [split_len + splitter_len for split_len in split_lens])
     split_starts = [start + _start for start in split_starts]
 
@@ -206,17 +212,22 @@ def chunk(
         else:
             # Merge the split with subsequent splits until the chunk size is reached.
             final_split_in_chunk_i, new_chunk = merge_splits(
-                splits[i:], split_lens[i:], local_chunk_size, splitter, token_counter
+                splits=splits,
+                cum_lens=cum_lens,
+                chunk_size=local_chunk_size,
+                splitter=splitter,
+                token_counter=token_counter,
+                start=i,
             )
 
             # Mark any splits included in the new chunk for exclusion from future chunks.
-            skips.update(range(i + 1, i + final_split_in_chunk_i))
+            skips.update(range(i + 1, final_split_in_chunk_i))
 
             # Add the chunk.
             chunks.append(new_chunk)
 
             # Add the chunk's offsets.
-            split_end = split_starts[i + final_split_in_chunk_i] - splitter_len
+            split_end = split_starts[final_split_in_chunk_i] - splitter_len
             offsets.append((split_start, split_end))
 
         # If the splitter is not whitespace and the split is not the last split, add the splitter to the end of the latest chunk if doing so would not cause it to exceed the chunk size otherwise add the splitter as a new chunk.
