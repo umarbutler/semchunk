@@ -9,7 +9,7 @@
 
 It has built-in support for tokenizers from OpenAI's `tiktoken` and Hugging Face's `transformers` and `tokenizers` libraries, in addition to supporting custom tokenizers and token counters. It can also overlap chunks as well as return their offsets.
 
-Powered by an efficient yet highly accurate chunking algorithm ([How It Works 🔍](https://github.com/isaacus-dev/semchunk#how-it-works-)), `semchunk` produces chunks that are more semantically meaningful than regular token and recursive character chunkers like `langchain`'s `RecursiveCharacterTextSplitter`, while also being 80% faster than its closest alternative, `semantic-text-splitter` ([Benchmarks 📊](https://github.com/isaacus-dev/semchunk#benchmarks-)).
+Powered by an efficient yet highly accurate chunking algorithm ([How It Works 🔍](https://github.com/isaacus-dev/semchunk#how-it-works-)), `semchunk` produces chunks that are more semantically meaningful than regular token and recursive character chunkers like `langchain`'s `RecursiveCharacterTextSplitter`, while also being 85% faster than its closest alternative, `semantic-text-splitter` ([Benchmarks 📊](https://github.com/isaacus-dev/semchunk#benchmarks-)).
 
 ## Installation 📦
 `semchunk` can be installed with `pip`:
@@ -145,7 +145,7 @@ If overlapping chunks have been requested, `semchunk` also:
 1. Merges every `floor(original_chunk_size / reduced_chunk_size)` chunks starting from the first chunk and then jumping by `floor((original_chunk_size - overlap) / reduced_chunk_size)` chunks until the last chunk is reached.
 
 ## Benchmarks 📊
-On a desktop with a Ryzen 9 7900X, 96 GB of DDR5 5600MHz CL40 RAM, Windows 11 and Python 3.12.4, it takes `semchunk` 2.96 seconds to split every sample in [NLTK's Gutenberg Corpus](https://www.nltk.org/howto/corpus.html#plaintext-corpora) into 512-token-long chunks with GPT-4's tokenizer (for context, the Corpus contains 18 texts and 3,001,260 tokens). By comparison, it takes [`semantic-text-splitter`](https://pypi.org/project/semantic-text-splitter/) (with multiprocessing) 23.28 seconds to chunk the same texts into 512-token-long chunks — a difference of 87.28%.
+On a desktop with a Ryzen 9 7900X, 96 GB of DDR5 5600MHz CL40 RAM, Windows 11 and Python 3.12.4, it takes `semchunk` 3.04 seconds to split every sample in [NLTK's Gutenberg Corpus](https://www.nltk.org/howto/corpus.html#plaintext-corpora) into 512-token-long chunks with GPT-4's tokenizer (for context, the Corpus contains 18 texts and 3,001,260 tokens). By comparison, it takes [`semantic-text-splitter`](https://pypi.org/project/semantic-text-splitter/) (with multiprocessing) 24.84 seconds to chunk the same texts into 512-token-long chunks — a difference of 87.76%.
 
 The code used to benchmark `semchunk` and `semantic-text-splitter` is available [here](https://github.com/isaacus-dev/semchunk/blob/main/tests/bench.py).
 
