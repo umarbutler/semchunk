@@ -1,9 +1,13 @@
 ## Changelog 🔄
 All notable changes to `semchunk` will be documented here. This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-### Added
-- Added [Isaacus](https://isaacus.com/) to the license.
+## [3.0.2] - 2025-02-13
+### Fixed
+- Significantly sped up chunking very long texts with little to no variation in levels of whitespace used (fixing [#8](https://github.com/isaacus-dev/semchunk/issues/8)) and, in the process, also slightly improved overall performance.
+
+### Changed
+- Transferred `semchunk` to [Isaacus](https://isaacus.com/).
+- Began formatting with Ruff.
 
 ## [3.0.1] - 2024-01-10
 ### Fixed
@@ -113,6 +117,7 @@ All notable changes to `semchunk` will be documented here. This project adheres 
 ### Added
 - Added the `chunk()` function, which splits text into semantically meaningful chunks of a specified size as determined by a provided token counter.
 
+[3.0.2]: https://github.com/umarbutler/semchunk/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/umarbutler/semchunk/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/umarbutler/semchunk/compare/v2.2.2...v3.0.0
 [2.2.2]: https://github.com/umarbutler/semchunk/compare/v2.2.1...v2.2.2
