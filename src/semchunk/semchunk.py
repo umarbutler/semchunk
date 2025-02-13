@@ -100,13 +100,12 @@ def bisect_left(sorted: list, target: int, low: int, high: int) -> int:
 
 
 def merge_splits(
-    splits: list[str], cum_lens: list[int], chunk_size: int, splitter: str, token_counter: Callable, start: int
+    splits: list[str], cum_lens: list[int], chunk_size: int, splitter: str, token_counter: Callable, start: int, high: int
 ) -> tuple[int, str]:
     """Merge splits until a chunk size is reached, returning the index of the last split included in the merged chunk along with the merged chunk itself."""
 
     average = 0.2
     low = start
-    high = len(splits) + 1
 
     offset = cum_lens[start]
     target = offset + (chunk_size * average)
@@ -183,6 +182,7 @@ def chunk(
     cum_lens = list(accumulate(split_lens, initial=0))
     split_starts = accumulate([0] + [split_len + splitter_len for split_len in split_lens])
     split_starts = [start + _start for start in split_starts]
+    num_splits_plus_one = len(splits) + 1
 
     chunks = []
     skips = set()
@@ -218,6 +218,7 @@ def chunk(
                 splitter=splitter,
                 token_counter=token_counter,
                 start=i,
+                high=num_splits_plus_one,
             )
 
             # Mark any splits included in the new chunk for exclusion from future chunks.
