@@ -5,9 +5,9 @@ import math
 import inspect
 
 from typing import Callable, Sequence, TYPE_CHECKING
-from functools import cache
 from itertools import accumulate
 from contextlib import suppress
+from functools import lru_cache
 
 import mpire
 
@@ -139,6 +139,7 @@ def chunk(
     memoize: bool = True,
     offsets: bool = False,
     overlap: float | int | None = None,
+    cache_maxsize: int | None = None,
     _recursion_depth: int = 0,
     _start: int = 0,
 ) -> list[str] | tuple[list[str], list[tuple[int, int]]]:
@@ -151,6 +152,7 @@ def chunk(
         memoize (bool, optional): Whether to memoize the token counter. Defaults to `True`.
         offsets (bool, optional): Whether to return the start and end offsets of each chunk. Defaults to `False`.
         overlap (float | int | None, optional): The proportion of the chunk size, or, if >=1, the number of tokens, by which chunks should overlap. Defaults to `None`, in which case no overlapping occurs.
+        cache_maxsize (int | None, optional): The maximum number of text-token count pairs that can be stored in the token counter's cache. Defaults to `None`, which makes the cache unbounded. This argument is only used if `memoize` is `True`.
 
     Returns:
         list[str] | tuple[list[str], list[tuple[int, int]]]: A list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, and, if `offsets` is `True`, a list of tuples of the form `(start, end)` where `start` is the index of the first character of the chunk in the original text and `end` is the index of the character after the last character of the chunk such that `chunks[i] == text[offsets[i][0]:offsets[i][1]]`."""
@@ -162,7 +164,7 @@ def chunk(
     # If this is the first call, memoize the token counter if memoization is enabled and reduce the effective chunk size if overlapping chunks.
     if is_first_call := not _recursion_depth:
         if memoize:
-            token_counter = _memoized_token_counters.setdefault(token_counter, cache(token_counter))
+            token_counter = _memoized_token_counters.setdefault(token_counter, lru_cache(cache_maxsize)(token_counter))
 
         if overlap:
             # Make relative overlaps absolute and floor both relative and absolute overlaps to prevent ever having an overlap >= chunk_size.
@@ -377,6 +379,7 @@ def chunkerify(
     chunk_size: int | None = None,
     max_token_chars: int | None = None,
     memoize: bool = True,
+    cache_maxsize: int | None = None,
 ) -> Chunker:
     """Construct a chunker that splits one or more texts into semantically meaningful chunks of a specified size as determined by the provided tokenizer or token counter.
 
@@ -385,6 +388,7 @@ def chunkerify(
         chunk_size (int, optional): The maximum number of tokens a chunk may contain. Defaults to `None` in which case it will be set to the same value as the tokenizer's `model_max_length` attribute (deducted by the number of tokens returned by attempting to tokenize an empty string) if possible otherwise a `ValueError` will be raised.
         max_token_chars (int, optional): The maximum numbers of characters a token may contain. Used to significantly speed up the token counting of long inputs. Defaults to `None` in which case it will either not be used or will, if possible, be set to the numbers of characters in the longest token in the tokenizer's vocabulary as determined by the `token_byte_values` or `get_vocab` methods.
         memoize (bool, optional): Whether to memoize the token counter. Defaults to `True`.
+        cache_maxsize (int, optional): The maximum number of text-token count pairs that can be stored in the token counter's cache. Defaults to `None`, which makes the cache unbounded. This argument is only used if `memoize` is `True`.
 
     Returns:
         Callable[[str | Sequence[str], bool, bool, bool, int | float | None], list[str] | tuple[list[str], list[tuple[int, int]]] | list[list[str]] | tuple[list[list[str]], list[list[tuple[int, int]]]]]: A chunker that takes either a single text or a sequence of texts and returns, depending on whether multiple texts have been provided, a list or list of lists of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, and, if the optional `offsets` argument to the chunker is `True`, a list or lists of tuples of the form `(start, end)` where `start` is the index of the first character of a chunk in a text and `end` is the index of the character succeeding the last character of the chunk such that `chunks[i] == text[offsets[i][0]:offsets[i][1]]`.
@@ -486,7 +490,7 @@ def chunkerify(
 
     # Memoize the token counter if necessary.
     if memoize:
-        token_counter = _memoized_token_counters.setdefault(token_counter, cache(token_counter))
+        token_counter = _memoized_token_counters.setdefault(token_counter, lru_cache(cache_maxsize)(token_counter))
 
     # Construct and return the chunker.
     return Chunker(chunk_size=chunk_size, token_counter=token_counter)

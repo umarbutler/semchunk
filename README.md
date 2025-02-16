@@ -71,6 +71,7 @@ def chunkerify(
     chunk_size: int = None,
     max_token_chars: int = None,
     memoize: bool = True,
+    cache_maxsize: int | None = None,
 ) -> Callable[[str | Sequence[str], bool, bool, bool, int | float | None], list[str] | tuple[list[str], list[tuple[int, int]]] | list[list[str]] | tuple[list[list[str]], list[list[tuple[int, int]]]]]:
 ```
 
@@ -83,6 +84,8 @@ def chunkerify(
 `max_token_chars` is the maximum numbers of characters a token may contain. It is used to significantly speed up the token counting of long inputs. It defaults to `None` in which case it will either not be used or will, if possible, be set to the numbers of characters in the longest token in the tokenizer's vocabulary as determined by the `token_byte_values` or `get_vocab` methods.
 
 `memoize` flags whether to memoize the token counter. It defaults to `True`.
+
+`cache_maxsize` is the maximum number of text-token count pairs that can be stored in the token counter's cache. It defaults to `None`, which makes the cache unbounded. This argument is only used if `memoize` is `True`.
 
 This function returns a chunker that takes either a single text or a sequence of texts and returns, depending on whether multiple texts have been provided, a list or list of lists of chunks up to `chunk_size`-tokens-long with any whitespace used to split the text removed, and, if the optional `offsets` argument to the chunker is `True`, a list or lists of tuples of the form `(start, end)` where `start` is the index of the first character of a chunk in a text and `end` is the index of the character succeeding the last character of the chunk such that `chunks[i] == text[offsets[i][0]:offsets[i][1]]`.
 
@@ -103,6 +106,7 @@ def chunk(
     memoize: bool = True,
     offsets: bool = False,
     overlap: float | int | None = None,
+    cache_maxsize: int | None = None,
 ) -> list[str]
 ```
 
@@ -119,6 +123,8 @@ def chunk(
 `offsets` flags whether to return the start and end offsets of each chunk. It defaults to `False`.
 
 `overlap` specifies the proportion of the chunk size, or, if >=1, the number of tokens, by which chunks should overlap. It defaults to `None`, in which case no overlapping occurs.
+
+`cache_maxsize` is the maximum number of text-token count pairs that can be stored in the token counter's cache. It defaults to `None`, which makes the cache unbounded. This argument is only used if `memoize` is `True`.
 
 This function returns a list of chunks up to `chunk_size`-tokens-long, with any whitespace used to split the text removed, and, if `offsets` is `True`, a list of tuples of the form `(start, end)` where `start` is the index of the first character of the chunk in the original text and `end` is the index of the character after the last character of the chunk such that `chunks[i] == text[offsets[i][0]:offsets[i][1]]`.
 
