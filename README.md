@@ -34,7 +34,9 @@ import semchunk
 import tiktoken                        # `transformers` and `tiktoken` are not required.
 from transformers import AutoTokenizer # They're just here for demonstration purposes.
 
-chunk_size = 4
+chunk_size = 4 # A low chunk size is used here for demonstration purposes. Keep in mind, `semchunk`
+               # does not know how many special tokens, if any, your tokenizer adds to every input,
+               # so you may want to deduct the number of special tokens added from your chunk size.
 text = 'The quick brown fox jumps over the lazy dog.'
 
 # You can construct a chunker with `semchunk.chunkerify()` by passing the name of an OpenAI model,
